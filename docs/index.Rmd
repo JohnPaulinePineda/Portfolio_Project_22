@@ -1633,7 +1633,9 @@ print(SilhouetteWidth_Summary, row.names=FALSE)
 | **[Article]** [Elbow Method vs Silhouette Score – Which is Better?](https://vitalflux.com/elbow-method-silhouette-score-which-better/) by Ajitesh Kumar
 | **[Article]** [Assessment Metrics for Clustering Algorithms](https://opendatascience.com/assessment-metrics-clustering-algorithms/) by Spencer Norris
 | **[Article]** [Clustering Performance Evaluation in Scikit Learn](https://www.geeksforgeeks.org/clustering-performance-evaluation-in-scikit-learn/) by Geeks For Geeks Team
-| **[Article]** [Taxonomy of Data Clustering Methods](https://1library.net/article/taxonomy-data-clustering-methods-overview-data-clustering-tools.y8p5nn4z) by Yun Lillian Li 
+| **[Article]** [Taxonomy of Data Clustering Methods](https://1library.net/article/taxonomy-data-clustering-methods-overview-data-clustering-tools.y8p5nn4z) by Yun Lillian Li
+| **[Article]** [Visualizing K-Means Clustering](https://www.naftaliharris.com/blog/visualizing-k-means-clustering/) by Naftali Harris 
+| **[Article]** [Visualizing DBSCAN Clustering](https://www.naftaliharris.com/blog/visualizing-dbscan-clustering/) by Naftali Harris 
 | **[Publication]** [A Review of Clustering Techniques and Developments](https://www.sciencedirect.com/science/article/abs/pii/S0925231217311815) by Amit Saxena (Neurocomputing)
 | **[Course]** [Applied Data Mining and Statistical Learning](https://online.stat.psu.edu/stat508/) by Penn State Eberly College of Science
 |
