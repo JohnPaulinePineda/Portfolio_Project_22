@@ -1628,6 +1628,13 @@ print(SilhouetteWidth_Summary, row.names=FALSE)
 | **[Article]** [Agglomerative Hierarchical Clustering](https://www.datanovia.com/en/lessons/agglomerative-hierarchical-clustering/#:~:text=The%20agglomerative%20clustering%20is%20the%20most%20common%20type,by%20treating%20each%20object%20as%20a%20singleton%20cluster.) by Datanovia Team
 | **[Article]** [Divisive Hierarchical Clustering](https://www.datanovia.com/en/lessons/divisive-hierarchical-clustering/) by Datanovia Team
 | **[Article]** [ML | Hierarchical clustering (Agglomerative and Divisive clustering)](https://www.geeksforgeeks.org/ml-hierarchical-clustering-agglomerative-and-divisive-clustering/) by Geeks For Geeks Team
+| **[Article]** [Practical Guide to Clustering Algorithms & Evaluation in R](https://www.hackerearth.com/practice/machine-learning/machine-learning-algorithms/clustering-algorithms-evaluation-r/tutorial/) by Hackerearth Team
+| **[Article]** [Which Are The Best Clustering Metrics? (Explained Simply)](https://stephenallwright.com/good-clustering-metrics/) by Stephen Allwright
+| **[Article]** [Elbow Method vs Silhouette Score – Which is Better?](https://vitalflux.com/elbow-method-silhouette-score-which-better/) by Ajitesh Kumar
+| **[Article]** [Assessment Metrics for Clustering Algorithms](https://opendatascience.com/assessment-metrics-clustering-algorithms/) by Spencer Norris
+| **[Article]** [Clustering Performance Evaluation in Scikit Learn](https://www.geeksforgeeks.org/clustering-performance-evaluation-in-scikit-learn/) by Geeks For Geeks Team
+| **[Article]** [Taxonomy of Data Clustering Methods](https://1library.net/article/taxonomy-data-clustering-methods-overview-data-clustering-tools.y8p5nn4z) by Yun Lillian Li 
+| **[Publication]** [A Review of Clustering Techniques and Developments](https://www.sciencedirect.com/science/article/abs/pii/S0925231217311815) by Amit Saxena (Neurocomputing)
 | **[Course]** [Applied Data Mining and Statistical Learning](https://online.stat.psu.edu/stat508/) by Penn State Eberly College of Science
 |
 |
