@@ -429,7 +429,7 @@ featurePlotRange(1+28*243,6830)
 
 ###  1.5.1 Partitioning Method - K-Means (PM_KMEANS)
 |
-| **[A]** The k-means algorithm was implemented only for descriptors using the <span style="color: #FF0000">stats</span> package.  
+| **[A]** The k-means algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**stats**</mark> package.  
 |
 | **[B]** The optimal number of clusters was 3 to 4 as determined using the average silhouette width, total within sum of squares and gap statistic.
 |
@@ -595,7 +595,7 @@ grid.arrange(PM_KMEANS_ClusterPlot,
 
 ###  1.5.2 Partitioning Method - Partitioning Around Medoids (PM_PAM)
 |
-| **[A]** The partitioning around medoids algorithm was implemented only for descriptors using the <span style="color: #FF0000">cluster</span> package.  
+| **[A]** The partitioning around medoids algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**cluster**</mark> package.  
 |
 | **[B]** The optimal number of clusters was 3 as determined using the average silhouette width, total within sum of squares and gap statistic.
 |
@@ -761,7 +761,7 @@ grid.arrange(PM_PAM_ClusterPlot,
 
 ###  1.5.3 Partitioning Method - Fuzzy Analysis Clustering (PM_FANNY)
 |
-| **[A]** The fuzzy analysis clustering algorithm was implemented only for descriptors using the <span style="color: #FF0000">cluster</span> package.  
+| **[A]** The fuzzy analysis clustering algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**cluster**</mark> package.  
 |
 | **[B]** The optimal number of clusters was 2 to 3 as determined using the average silhouette width, total within sum of squares and gap statistic.
 |
@@ -927,7 +927,7 @@ grid.arrange(PM_FANNY_ClusterPlot,
 
 ###  1.5.4 Hierarchical Method - Hierarchical Clustering (HM_HCLUST)
 |
-| **[A]** The hierarchical clustering algorithm was implemented only for descriptors using the <span style="color: #FF0000">factoextra</span> package.  
+| **[A]** The hierarchical clustering algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**factoextra**</mark> package.  
 |
 | **[B]** The optimal number of clusters was 3 to 4 as determined using the average silhouette width, total within sum of squares and gap statistic.
 |
@@ -1093,7 +1093,7 @@ grid.arrange(HM_HCLUST_ClusterPlot,
 
 ###  1.5.5 Hierarchical Method - Agglomerative Nesting (HM_AGNES)
 |
-| **[A]** The agglomerative nesting algorithm was implemented only for descriptors using the <span style="color: #FF0000">cluster</span> package.  
+| **[A]** The agglomerative nesting algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**cluster**</mark> package.  
 |
 | **[B]** The optimal number of clusters was 3 as determined using the average silhouette width, total within sum of squares and gap statistic.
 |
@@ -1259,7 +1259,7 @@ grid.arrange(HM_AGNES_ClusterPlot,
 
 ###  1.5.6 Hierarchical Method - Divisive Analysis Clustering (HM_DIANA)
 |
-| **[A]** The divisive analysis clustering algorithm was implemented only for descriptors using the <span style="color: #FF0000">cluster</span> package.  
+| **[A]** The divisive analysis clustering algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**cluster**</mark> package.  
 |
 | **[B]** The optimal number of clusters was 3 as determined using the average silhouette width, total within sum of squares and gap statistic.
 |
