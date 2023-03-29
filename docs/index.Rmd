@@ -1097,6 +1097,8 @@ grid.arrange(HM_HCLUST_ClusterPlot,
 
 ###  1.5.5 Hierarchical Method - Agglomerative Nesting (HM_AGNES)
 |
+| [HM_AGNES](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) computes an agglomerative hierarchical clustering of the data set. The algorithm constructs a hierarchy of clusterings. At first, each observation is a small cluster by itself. Clusters are merged until only one large cluster remains which contains all the observations. At each stage the two nearest clusters are combined to form one larger cluster. Euclidean distance, which are root sum-of-squares of differences, is used for calculating dissimilarities between observations. The distance between two clusters is the average of the dissimilarities between the points in one cluster and the points in the other cluster.
+|
 | **[A]** The agglomerative nesting algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**cluster**</mark> package.  
 |
 | **[B]** The optimal number of clusters was 3 as determined using the average silhouette width, total within sum of squares and gap statistic.
