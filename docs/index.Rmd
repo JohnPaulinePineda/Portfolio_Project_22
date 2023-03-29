@@ -595,6 +595,8 @@ grid.arrange(PM_KMEANS_ClusterPlot,
 
 ###  1.5.2 Partitioning Method - Partitioning Around Medoids (PM_PAM)
 |
+| [PM_PAM](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) performs partitioning (clustering) of the data into k clusters around medoids, representing a more robust version of K-means. The algorithm is based on the search for k representative objects or medoids among the observations of the dataset. These observations should represent the structure of the data. After finding a set of k medoids, k clusters are constructed by assigning each observation to the nearest medoid. The goal is to find k representative objects which minimize the sum of the dissimilarities of the observations to their closest representative object.
+|
 | **[A]** The partitioning around medoids algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**cluster**</mark> package.  
 |
 | **[B]** The optimal number of clusters was 3 as determined using the average silhouette width, total within sum of squares and gap statistic.
@@ -1639,7 +1641,7 @@ print(SilhouetteWidth_Summary, row.names=FALSE)
 | **[Article]** [Visualizing DBSCAN Clustering](https://www.naftaliharris.com/blog/visualizing-dbscan-clustering/) by Naftali Harris 
 | **[Publication]** [Clustering Rules: A Comparison of Partitioning and Hierarchical Clustering Algorithms](https://link.springer.com/article/10.1007/s10852-005-9022-1) by AP Reynolds (Journal of Mathematical Modelling and Algorithms)
 | **[Publication]** [Faster k-Medoids Clustering: Improving the PAM, CLARA, and CLARANS Algorithms](https://link.springer.com/chapter/10.1007/978-3-030-32047-8_16) by Erich Schubert and Peter Rousseeuw  (SISAP 2020)
-| **[Publication]** [Fast and Eager k-Medoids Clustering: O(k) Runtime Improvement of the PAM, CLARA, and CLARANS Algorithms](https://www.sciencedirect.com/science/article/abs/pii/S0925231217311815) by Erich Schubert and Peter Rousseeuw  (Information Syste4ms)
+| **[Publication]** [Fast and Eager k-Medoids Clustering: O(k) Runtime Improvement of the PAM, CLARA, and CLARANS Algorithms](https://www.sciencedirect.com/science/article/abs/pii/S0925231217311815) by Erich Schubert and Peter Rousseeuw  (Information Systems)
 | **[Publication]** [ A General Coefficient of Similarity and Some of its Properties](https://www.jstor.org/stable/2528823) by JC Gower (Biometrics)
 | **[Publication]** [Integrating Robust Clustering Techniques in S-PLUS](https://www.sciencedirect.com/science/article/abs/pii/S0167947397000200) by Anja Struyf, Mia Hubert and Peter Rousseeuw (Computational Statistics and Data Analysis)
 | **[Publication]** [Cluster Analysis of Multivariate Data : Efficiency Versus Interpretability of Classification](https://cir.nii.ac.jp/crid/1572261551251079552?lang=en) by E Forgy (Biometrics)
