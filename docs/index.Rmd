@@ -429,6 +429,8 @@ featurePlotRange(1+28*243,6830)
 
 ###  1.5.1 Partitioning Method - K-Means (PM_KMEANS)
 |
+| [PM_KMEANS](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) groups similar data points together into clusters by minimizing the mean distance between geometric points. The algorithm iteratively partitions data sets into a fixed number of non-overlapping k subgroups or clusters wherein each data point belongs to the cluster with the nearest mean cluster center. The process begins by initializing all the coordinates into a pre-defined k number of cluster centers. With every pass of the algorithm, each point is assigned to its nearest cluster center. The cluster centers are then updated to be the centers of all the points assigned to it in that pass. This is performed by re-calculating the cluster centers as the average of the points in each respective cluster. The algorithm repeats until there’s a minimum change of the cluster centers from the last iteration.
+|
 | **[A]** The k-means algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**stats**</mark> package.  
 |
 | **[B]** The optimal number of clusters was 3 to 4 as determined using the average silhouette width, total within sum of squares and gap statistic.
