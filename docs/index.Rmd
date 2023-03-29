@@ -1265,6 +1265,8 @@ grid.arrange(HM_AGNES_ClusterPlot,
 
 ###  1.5.6 Hierarchical Method - Divisive Analysis Clustering (HM_DIANA)
 |
+| [HM_DIANA](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) computes a divisive hierarchical clustering of the dataset the data set. The algorithm constructs a hierarchy of clusterings, starting with one large cluster containing all observations. Clusters are divided until each cluster contains only a single observation. At each stage, the cluster with the largest diameter is selected (the diameter of a cluster is the largest dissimilarity between any two of its observations). To divide the selected cluster, the algorithm first looks for its most disparate observation (i.e., which has the largest average dissimilarity to the other observations of the selected cluster). This observation initiates the splinter group. In subsequent steps, the algorithm reassigns observations that are closer to the splinter group than to the original group, resulting to the division of the selected cluster into two new clusters.
+|
 | **[A]** The divisive analysis clustering algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**cluster**</mark> package.  
 |
 | **[B]** The optimal number of clusters was 3 as determined using the average silhouette width, total within sum of squares and gap statistic.
