@@ -933,6 +933,10 @@ grid.arrange(PM_FANNY_ClusterPlot,
 
 ###  1.5.4 Hierarchical Method - Hierarchical Clustering (HM_HCLUST)
 |
+| [HM_HCLUST](https://zbmath.org/0601.62085) performs a hierarchical cluster analysis using a set of dissimilarities for the 
+observations being clustered. Initially, each object is assigned to its own cluster and then the algorithm proceeds iteratively, at each stage joining the two most similar clusters, continuing until there is just a single cluster. At each stage distances between clusters are recomputed by the Lance–Williams dissimilarity update formula according to the complete linkage method which finds similar clusters. The formulated hierarchical cluster tree is eventually cut into k clusters.
+|
+|
 | **[A]** The hierarchical clustering algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**factoextra**</mark> package.  
 |
 | **[B]** The optimal number of clusters was 3 to 4 as determined using the average silhouette width, total within sum of squares and gap statistic.
