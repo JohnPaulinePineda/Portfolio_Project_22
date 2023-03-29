@@ -595,7 +595,7 @@ grid.arrange(PM_KMEANS_ClusterPlot,
 
 ###  1.5.2 Partitioning Method - Partitioning Around Medoids (PM_PAM)
 |
-| [PM_PAM](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) performs partitioning (clustering) of the data into k clusters around medoids, representing a more robust version of K-means. The algorithm is based on the search for k representative objects or medoids among the observations of the dataset. These observations should represent the structure of the data. After finding a set of k medoids, k clusters are constructed by assigning each observation to the nearest medoid. The goal is to find k representative objects which minimize the sum of the dissimilarities of the observations to their closest representative object.
+| [PM_PAM](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) performs partitioning (clustering) of the data into k clusters around medoids, representing a more robust version of K-means. The algorithm is based on the search for k representative objects or medoids among the observations of the data set. These observations should represent the structure of the data. After finding a set of k medoids, k clusters are constructed by assigning each observation to the nearest medoid. The goal is to find k representative objects which minimize the sum of the dissimilarities of the observations to their closest representative object.
 |
 | **[A]** The partitioning around medoids algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**cluster**</mark> package.  
 |
@@ -762,6 +762,8 @@ grid.arrange(PM_PAM_ClusterPlot,
 ```
 
 ###  1.5.3 Partitioning Method - Fuzzy Analysis Clustering (PM_FANNY)
+|
+| [PM_FANNY](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) computes a fuzzy clustering of the data into k clusters. In a fuzzy clustering implementation, each observation is spread out over the various clusters represented by non-negative membership values summing up to 1. The algorithm aims to minimize the objective function which involves the number of observations, the number of clusters, membership exponent and dissimilarity indices between observations.
 |
 | **[A]** The fuzzy analysis clustering algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**cluster**</mark> package.  
 |
