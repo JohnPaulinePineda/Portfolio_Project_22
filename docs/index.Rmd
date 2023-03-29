@@ -18,6 +18,8 @@ knitr::opts_chunk$set(echo = TRUE, fig.width=15, fig.height=10)
 |
 | This document implements clustering algorithms for formulating segmented groups using various helpful packages in <mark style="background-color: #CCECFF">**R**</mark>.    
 |
+| Clustering analysis is a form of unsupervised learning method aimed at identifying similar structural patterns in an unlabeled data set by segmenting the observations into clusters with shared characteristics as compared to those in other clusters. The algorithms applied in this study (mostly contained in the <mark style="background-color: #CCECFF">**stats**</mark> , <mark style="background-color: #CCECFF">**factorextra**</mark> and <mark style="background-color: #CCECFF">**cluster**</mark> packages) attempt to formulate partitioned segments from the data set through the hierarchical (either agglomeratively when smaller clusters are merged into the larger clusters or divisively when larger clusters are divided into smaller clusters) and non-hierarchical (when each observation is placed in exactly one of the mutually exclusive clusters) methods.
+|
 ##  1.1 Sample Data
 |
 | The <mark style="background-color: #EEEEEE;color: #FF0000">**NCI6**</mark>  dataset from the  <mark style="background-color: #CCECFF">**ISLR**</mark> package was used for this illustrated example. Only a subset of observations representing major cancer types was used for the analysis.    
