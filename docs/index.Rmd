@@ -1585,6 +1585,7 @@ print(SilhouetteWidth_Summary, row.names=FALSE)
 | **[Book]** [Introduction to R and Statistics](https://saestatsteaching.tech/) by University of Western Australia
 | **[Book]** [Feature Engineering and Selection: A Practical Approach for Predictive Models](http://www.feat.engineering/index.html) by Max Kuhn and Kjell Johnson
 | **[Book]** [Introduction to Research Methods](https://bookdown.org/ejvanholm/Textbook/) by Eric van Holm
+| **[Book]** [Finding Groups in Data: An Introduction to Cluster Analysis](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) by Leonard Kaufman and Peter Rousseeuw
 | **[R Package]** [AppliedPredictiveModeling](https://cran.r-project.org/web//packages/AppliedPredictiveModeling/AppliedPredictiveModeling.pdf) by Max Kuhn
 | **[R Package]** [caret](https://topepo.github.io/caret/index.html) by Max Kuhn
 | **[R Package]** [rpart](https://mran.microsoft.com/web/packages/rpart/rpart.pdf) by Terry Therneau and Beth Atkinson
@@ -1636,7 +1637,14 @@ print(SilhouetteWidth_Summary, row.names=FALSE)
 | **[Article]** [Taxonomy of Data Clustering Methods](https://1library.net/article/taxonomy-data-clustering-methods-overview-data-clustering-tools.y8p5nn4z) by Yun Lillian Li
 | **[Article]** [Visualizing K-Means Clustering](https://www.naftaliharris.com/blog/visualizing-k-means-clustering/) by Naftali Harris 
 | **[Article]** [Visualizing DBSCAN Clustering](https://www.naftaliharris.com/blog/visualizing-dbscan-clustering/) by Naftali Harris 
-| **[Publication]** [A Review of Clustering Techniques and Developments](https://www.sciencedirect.com/science/article/abs/pii/S0925231217311815) by Amit Saxena (Neurocomputing)
+| **[Publication]** [Clustering Rules: A Comparison of Partitioning and Hierarchical Clustering Algorithms](https://link.springer.com/article/10.1007/s10852-005-9022-1) by AP Reynolds (Journal of Mathematical Modelling and Algorithms)
+| **[Publication]** [Faster k-Medoids Clustering: Improving the PAM, CLARA, and CLARANS Algorithms](https://link.springer.com/chapter/10.1007/978-3-030-32047-8_16) by Erich Schubert and Peter Rousseeuw  (SISAP 2020)
+| **[Publication]** [Fast and Eager k-Medoids Clustering: O(k) Runtime Improvement of the PAM, CLARA, and CLARANS Algorithms](https://www.sciencedirect.com/science/article/abs/pii/S0925231217311815) by Erich Schubert and Peter Rousseeuw  (Information Syste4ms)
+| **[Publication]** [ A General Coefficient of Similarity and Some of its Properties](https://www.jstor.org/stable/2528823) by JC Gower (Biometrics)
+| **[Publication]** [Integrating Robust Clustering Techniques in S-PLUS](https://www.sciencedirect.com/science/article/abs/pii/S0167947397000200) by Anja Struyf, Mia Hubert and Peter Rousseeuw (Computational Statistics and Data Analysis)
+| **[Publication]** [Cluster Analysis of Multivariate Data : Efficiency Versus Interpretability of Classification](https://cir.nii.ac.jp/crid/1572261551251079552?lang=en) by E Forgy (Biometrics)
+| **[Publication]** [Algorithm AS136: A K-Means Clustering Algorithm](https://www.semanticscholar.org/paper/Algorithm-AS136%3A-A-k-means-clustering-algorithm.-Hartingan-Wong/f5bcf7ef2364bc402af1f1ef1fc411e1cfffaeca) by Ja Hartingan and Maurice Wong (Applied Statistics)
+| **[Publication]** [Multidimensional Clustering Algorithms](https://zbmath.org/0601.62085) by Fionn Murtagh (Compstat Lectures)
 | **[Course]** [Applied Data Mining and Statistical Learning](https://online.stat.psu.edu/stat508/) by Penn State Eberly College of Science
 |
 |
