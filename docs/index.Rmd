@@ -1651,6 +1651,7 @@ print(SilhouetteWidth_Summary, row.names=FALSE)
 | **[Publication]** [ A General Coefficient of Similarity and Some of its Properties](https://www.jstor.org/stable/2528823) by JC Gower (Biometrics)
 | **[Publication]** [Integrating Robust Clustering Techniques in S-PLUS](https://www.sciencedirect.com/science/article/abs/pii/S0167947397000200) by Anja Struyf, Mia Hubert and Peter Rousseeuw (Computational Statistics and Data Analysis)
 | **[Publication]** [Cluster Analysis of Multivariate Data : Efficiency Versus Interpretability of Classification](https://cir.nii.ac.jp/crid/1572261551251079552?lang=en) by E Forgy (Biometrics)
+| **[Publication]** [Some Methods for Classification and Analysis of Multivariate Observations](https://www.semanticscholar.org/paper/Some-methods-for-classification-and-analysis-of-MacQueen/ac8ab51a86f1a9ae74dd0e4576d1a019f5e654ed) by J Macqueen (Proceedings of the Fifth Berkeley Symposium on Mathematical Statistics and Probability)
 | **[Publication]** [Algorithm AS136: A K-Means Clustering Algorithm](https://www.semanticscholar.org/paper/Algorithm-AS136%3A-A-k-means-clustering-algorithm.-Hartingan-Wong/f5bcf7ef2364bc402af1f1ef1fc411e1cfffaeca) by Ja Hartingan and Maurice Wong (Applied Statistics)
 | **[Publication]** [Multidimensional Clustering Algorithms](https://zbmath.org/0601.62085) by Fionn Murtagh (Compstat Lectures)
 | **[Course]** [Applied Data Mining and Statistical Learning](https://online.stat.psu.edu/stat508/) by Penn State Eberly College of Science
