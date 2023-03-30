@@ -1650,8 +1650,7 @@ print(SilhouetteWidth_Summary, row.names=FALSE)
 | **[Article]** [Clustering Performance Evaluation in Scikit Learn](https://www.geeksforgeeks.org/clustering-performance-evaluation-in-scikit-learn/) by Geeks For Geeks Team
 | **[Article]** [Taxonomy of Data Clustering Methods](https://1library.net/article/taxonomy-data-clustering-methods-overview-data-clustering-tools.y8p5nn4z) by Yun Lillian Li
 | **[Article]** [Visualizing K-Means Clustering](https://www.naftaliharris.com/blog/visualizing-k-means-clustering/) by Naftali Harris 
-| **[Article]** [Visualizing DBSCAN Clustering](https://www.naftaliharris.com/blog/visualizing-dbscan-clustering/) by Naftali Harris 
-| **[Publication]** [Clustering Rules: A Comparison of Partitioning and Hierarchical Clustering Algorithms](https://link.springer.com/article/10.1007/s10852-005-9022-1) by AP Reynolds (Journal of Mathematical Modelling and Algorithms)
+| **[Article]** [Visualizing DBSCAN Clustering](https://www.naftaliharris.com/blog/visualizing-dbscan-clustering/) by Naftali Harris | **[Publication]** [Clustering Rules: A Comparison of Partitioning and Hierarchical Clustering Algorithms](https://link.springer.com/article/10.1007/s10852-005-9022-1) by AP Reynolds (Journal of Mathematical Modelling and Algorithms)
 | **[Publication]** [Faster k-Medoids Clustering: Improving the PAM, CLARA, and CLARANS Algorithms](https://link.springer.com/chapter/10.1007/978-3-030-32047-8_16) by Erich Schubert and Peter Rousseeuw  (SISAP 2020)
 | **[Publication]** [Fast and Eager k-Medoids Clustering: O(k) Runtime Improvement of the PAM, CLARA, and CLARANS Algorithms](https://www.sciencedirect.com/science/article/abs/pii/S0925231217311815) by Erich Schubert and Peter Rousseeuw  (Information Systems)
 | **[Publication]** [ A General Coefficient of Similarity and Some of its Properties](https://www.jstor.org/stable/2528823) by JC Gower (Biometrics)
