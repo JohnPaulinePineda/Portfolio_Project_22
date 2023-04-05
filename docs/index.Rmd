@@ -431,7 +431,7 @@ featurePlotRange(1+28*243,6830)
 
 ###  1.5.1 Partitioning Method - K-Means (PM_KMEANS)
 |
-| [PM_KMEANS](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) groups similar data points together into clusters by minimizing the mean distance between geometric points. The algorithm iteratively partitions data sets into a fixed number of non-overlapping k subgroups or clusters wherein each data point belongs to the cluster with the nearest mean cluster center. The process begins by initializing all the coordinates into a pre-defined k number of cluster centers. With every pass of the algorithm, each point is assigned to its nearest cluster center. The cluster centers are then updated to be the centers of all the points assigned to it in that pass. This is performed by re-calculating the cluster centers as the average of the points in each respective cluster. The algorithm repeats until there’s a minimum change of the cluster centers from the last iteration.
+| [K-Means Clustering](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) groups similar data points together into clusters by minimizing the mean distance between geometric points. The algorithm iteratively partitions data sets into a fixed number of non-overlapping k subgroups or clusters wherein each data point belongs to the cluster with the nearest mean cluster center. The process begins by initializing all the coordinates into a pre-defined k number of cluster centers. With every pass of the algorithm, each point is assigned to its nearest cluster center. The cluster centers are then updated to be the centers of all the points assigned to it in that pass. This is performed by re-calculating the cluster centers as the average of the points in each respective cluster. The algorithm repeats until there’s a minimum change of the cluster centers from the last iteration.
 |
 | **[A]** The k-means algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**stats**</mark> package.  
 |
@@ -599,7 +599,7 @@ grid.arrange(PM_KMEANS_ClusterPlot,
 
 ###  1.5.2 Partitioning Method - Partitioning Around Medoids (PM_PAM)
 |
-| [PM_PAM](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) performs partitioning (clustering) of the data into k clusters around medoids, representing a more robust version of K-means. The algorithm is based on the search for k representative objects or medoids among the observations of the data set. These observations should represent the structure of the data. After finding a set of k medoids, k clusters are constructed by assigning each observation to the nearest medoid. The goal is to find k representative objects which minimize the sum of the dissimilarities of the observations to their closest representative object.
+| [Partitioning Around Medoids](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) performs partitioning (clustering) of the data into k clusters around medoids, representing a more robust version of K-means. The algorithm is based on the search for k representative objects or medoids among the observations of the data set. These observations should represent the structure of the data. After finding a set of k medoids, k clusters are constructed by assigning each observation to the nearest medoid. The goal is to find k representative objects which minimize the sum of the dissimilarities of the observations to their closest representative object.
 |
 | **[A]** The partitioning around medoids algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**cluster**</mark> package.  
 |
@@ -767,7 +767,7 @@ grid.arrange(PM_PAM_ClusterPlot,
 
 ###  1.5.3 Partitioning Method - Fuzzy Analysis Clustering (PM_FANNY)
 |
-| [PM_FANNY](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) computes a fuzzy clustering of the data into k clusters. In a fuzzy clustering implementation, each observation is spread out over the various clusters represented by non-negative membership values summing up to 1. The algorithm aims to minimize the objective function which involves the number of observations, the number of clusters, membership exponent and dissimilarity indices between observations.
+| [Fuzzy Analysis Clustering](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) computes a fuzzy clustering of the data into k clusters. In a fuzzy clustering implementation, each observation is spread out over the various clusters represented by non-negative membership values summing up to 1. The algorithm aims to minimize the objective function which involves the number of observations, the number of clusters, membership exponent and dissimilarity indices between observations.
 |
 | **[A]** The fuzzy analysis clustering algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**cluster**</mark> package.  
 |
@@ -935,7 +935,7 @@ grid.arrange(PM_FANNY_ClusterPlot,
 
 ###  1.5.4 Hierarchical Method - Hierarchical Clustering (HM_HCLUST)
 |
-| [HM_HCLUST](https://zbmath.org/0601.62085) performs a hierarchical cluster analysis using a set of dissimilarities for the observations being clustered. Initially, each object is assigned to its own cluster and then the algorithm proceeds iteratively, at each stage joining the two most similar clusters, continuing until there is just a single cluster. At each stage distances between clusters are recomputed by the Lance–Williams dissimilarity update formula according to the complete linkage method which finds similar clusters. The formulated hierarchical cluster tree is eventually cut into k clusters.
+| [Hierarchical Clustering](https://zbmath.org/0601.62085) performs a hierarchical cluster analysis using a set of dissimilarities for the observations being clustered. Initially, each object is assigned to its own cluster and then the algorithm proceeds iteratively, at each stage joining the two most similar clusters, continuing until there is just a single cluster. At each stage distances between clusters are recomputed by the Lance–Williams dissimilarity update formula according to the complete linkage method which finds similar clusters. The formulated hierarchical cluster tree is eventually cut into k clusters.
 |
 | **[A]** The hierarchical clustering algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**factoextra**</mark> package.  
 |
@@ -1103,7 +1103,7 @@ grid.arrange(HM_HCLUST_ClusterPlot,
 
 ###  1.5.5 Hierarchical Method - Agglomerative Nesting (HM_AGNES)
 |
-| [HM_AGNES](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) computes an agglomerative hierarchical clustering of the data set. The algorithm constructs a hierarchy of clusterings. At first, each observation is a small cluster by itself. Clusters are merged until only one large cluster remains which contains all the observations. At each stage the two nearest clusters are combined to form one larger cluster. Euclidean distance, which are root sum-of-squares of differences, is used for calculating dissimilarities between observations. The distance between two clusters is the average of the dissimilarities between the points in one cluster and the points in the other cluster.
+| [Agglomerative Nesting](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) computes an agglomerative hierarchical clustering of the data set. The algorithm constructs a hierarchy of clusterings. At first, each observation is a small cluster by itself. Clusters are merged until only one large cluster remains which contains all the observations. At each stage the two nearest clusters are combined to form one larger cluster. Euclidean distance, which are root sum-of-squares of differences, is used for calculating dissimilarities between observations. The distance between two clusters is the average of the dissimilarities between the points in one cluster and the points in the other cluster.
 |
 | **[A]** The agglomerative nesting algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**cluster**</mark> package.  
 |
@@ -1271,7 +1271,7 @@ grid.arrange(HM_AGNES_ClusterPlot,
 
 ###  1.5.6 Hierarchical Method - Divisive Analysis Clustering (HM_DIANA)
 |
-| [HM_DIANA](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) computes a divisive hierarchical clustering of the dataset the data set. The algorithm constructs a hierarchy of clusterings, starting with one large cluster containing all observations. Clusters are divided until each cluster contains only a single observation. At each stage, the cluster with the largest diameter is selected (the diameter of a cluster is the largest dissimilarity between any two of its observations). To divide the selected cluster, the algorithm first looks for its most disparate observation (i.e., which has the largest average dissimilarity to the other observations of the selected cluster). This observation initiates the splinter group. In subsequent steps, the algorithm reassigns observations that are closer to the splinter group than to the original group, resulting to the division of the selected cluster into two new clusters.
+| [Divisive Analysis Clustering](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) computes a divisive hierarchical clustering of the dataset the data set. The algorithm constructs a hierarchy of clusterings, starting with one large cluster containing all observations. Clusters are divided until each cluster contains only a single observation. At each stage, the cluster with the largest diameter is selected (the diameter of a cluster is the largest dissimilarity between any two of its observations). To divide the selected cluster, the algorithm first looks for its most disparate observation (i.e., which has the largest average dissimilarity to the other observations of the selected cluster). This observation initiates the splinter group. In subsequent steps, the algorithm reassigns observations that are closer to the splinter group than to the original group, resulting to the division of the selected cluster into two new clusters.
 |
 | **[A]** The divisive analysis clustering algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**cluster**</mark> package.  
 |
