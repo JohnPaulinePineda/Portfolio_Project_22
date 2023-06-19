@@ -38,6 +38,9 @@ knitr::opts_chunk$set(echo = TRUE, fig.width=15, fig.height=10)
 |      **[B.2]** 6830/6831 descriptors = 6830/6830 numeric
 |     
 | 
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.1, warning=FALSE, message=FALSE}
 ##################################
 # Loading R libraries
@@ -109,6 +112,9 @@ PDA <- NCI60
   row.names=NULL)
 )
 ```
+
+</details>
+
 ##  1.2 Data Quality Assessment
 |
 | Data quality assessment:
@@ -123,6 +129,10 @@ PDA <- NCI60
 | 
 | **[E]** Considering the unsupervised learning nature of the analysis, no data pre-processing was proceeded to address the data quality issues identified.
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.2, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -340,6 +350,8 @@ if (length(names(DQA.Descriptors.Numeric))==0) {
 
 ```
 
+</details>
+
 ##  1.3 Data Preprocessing
 
 ###  1.3.1 Centering and Scaling
@@ -348,6 +360,10 @@ if (length(names(DQA.Descriptors.Numeric))==0) {
 |
 | **[A]** To maintain an objective comparison across the different descriptors, centering and scaling transformation was applied on the numeric variables. The <span style="color: #0000FF">center</span> method from the <mark style="background-color: #CCECFF">**caret**</mark> package was implemented which subtracts the average value of a numeric variable to all the values. As a result of centering, the variables had zero mean values. In addition, the <span style="color: #0000FF">scale</span> method, also from the <mark style="background-color: #CCECFF">**caret**</mark> package, was applied which performs a center transformation with each value of the variable divided by its standard deviation. Scaling the data coerced the values to have a common standard deviation of one.
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.3.1, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -373,12 +389,18 @@ row.names(DPA.Descriptors.Numeric_CenteredScaledTransformed) <- NULL
 
 ```
 
+</details>
+
 ## 1.4 Data Exploration
 |
 | Exploratory data analysis:
 |
 | **[A]** Most descriptors demonstrated differential relationships across the different levels of the <span style="color: #FF0000">Cancer</span> variable. Although, as driven by the huge number, the best descriptors cannot be clearly established. 
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.4, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -427,6 +449,8 @@ featurePlotRange(1+28*243,6830)
 
 ```
 
+</details>
+
 ## 1.5 Clustering and Segmentation
 
 ###  1.5.1 Partitioning Method - K-Means (PM_KMEANS)
@@ -441,6 +465,10 @@ featurePlotRange(1+28*243,6830)
 |
 | **[D]** The derived clusters were sufficiently informative after applying principal component analysis on the given analysis data. 
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.1, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -597,6 +625,8 @@ grid.arrange(PM_KMEANS_ClusterPlot,
              ncol = 1)
 ```
 
+</details>
+
 ###  1.5.2 Partitioning Method - Partitioning Around Medoids (PM_PAM)
 |
 | [Partitioning Around Medoids](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) performs partitioning (clustering) of the data into k clusters around medoids, representing a more robust version of K-means. The algorithm is based on the search for k representative objects or medoids among the observations of the data set. These observations should represent the structure of the data. After finding a set of k medoids, k clusters are constructed by assigning each observation to the nearest medoid. The goal is to find k representative objects which minimize the sum of the dissimilarities of the observations to their closest representative object.
@@ -609,6 +639,10 @@ grid.arrange(PM_KMEANS_ClusterPlot,
 |
 | **[D]** The derived clusters were sufficiently informative after applying principal component analysis on the given analysis data. 
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.2, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -765,6 +799,8 @@ grid.arrange(PM_PAM_ClusterPlot,
 
 ```
 
+</details>
+
 ###  1.5.3 Partitioning Method - Fuzzy Analysis Clustering (PM_FANNY)
 |
 | [Fuzzy Analysis Clustering](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) computes a fuzzy clustering of the data into k clusters. In a fuzzy clustering implementation, each observation is spread out over the various clusters represented by non-negative membership values summing up to 1. The algorithm aims to minimize the objective function which involves the number of observations, the number of clusters, membership exponent and dissimilarity indices between observations.
@@ -777,6 +813,10 @@ grid.arrange(PM_PAM_ClusterPlot,
 |
 | **[D]** The derived clusters were not sufficiently informative after applying principal component analysis on the given analysis data. 
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.3, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -933,6 +973,8 @@ grid.arrange(PM_FANNY_ClusterPlot,
 
 ```
 
+</details>
+
 ###  1.5.4 Hierarchical Method - Hierarchical Clustering (HM_HCLUST)
 |
 | [Hierarchical Clustering](https://zbmath.org/0601.62085) performs a hierarchical cluster analysis using a set of dissimilarities for the observations being clustered. Initially, each object is assigned to its own cluster and then the algorithm proceeds iteratively, at each stage joining the two most similar clusters, continuing until there is just a single cluster. At each stage distances between clusters are recomputed by the Lance–Williams dissimilarity update formula according to the complete linkage method which finds similar clusters. The formulated hierarchical cluster tree is eventually cut into k clusters.
@@ -945,6 +987,10 @@ grid.arrange(PM_FANNY_ClusterPlot,
 |
 | **[D]** The derived clusters were sufficiently informative after applying principal component analysis on the given analysis data. 
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.4, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -1101,6 +1147,8 @@ grid.arrange(HM_HCLUST_ClusterPlot,
 
 ```
 
+</details>
+
 ###  1.5.5 Hierarchical Method - Agglomerative Nesting (HM_AGNES)
 |
 | [Agglomerative Nesting](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) computes an agglomerative hierarchical clustering of the data set. The algorithm constructs a hierarchy of clusterings. At first, each observation is a small cluster by itself. Clusters are merged until only one large cluster remains which contains all the observations. At each stage the two nearest clusters are combined to form one larger cluster. Euclidean distance, which are root sum-of-squares of differences, is used for calculating dissimilarities between observations. The distance between two clusters is the average of the dissimilarities between the points in one cluster and the points in the other cluster.
@@ -1113,6 +1161,10 @@ grid.arrange(HM_HCLUST_ClusterPlot,
 |
 | **[D]** The derived clusters were sufficiently informative after applying principal component analysis on the given analysis data. 
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.5, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -1269,6 +1321,8 @@ grid.arrange(HM_AGNES_ClusterPlot,
 
 ```
 
+</details>
+
 ###  1.5.6 Hierarchical Method - Divisive Analysis Clustering (HM_DIANA)
 |
 | [Divisive Analysis Clustering](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) computes a divisive hierarchical clustering of the dataset the data set. The algorithm constructs a hierarchy of clusterings, starting with one large cluster containing all observations. Clusters are divided until each cluster contains only a single observation. At each stage, the cluster with the largest diameter is selected (the diameter of a cluster is the largest dissimilarity between any two of its observations). To divide the selected cluster, the algorithm first looks for its most disparate observation (i.e., which has the largest average dissimilarity to the other observations of the selected cluster). This observation initiates the splinter group. In subsequent steps, the algorithm reassigns observations that are closer to the splinter group than to the original group, resulting to the division of the selected cluster into two new clusters.
@@ -1281,6 +1335,10 @@ grid.arrange(HM_AGNES_ClusterPlot,
 |
 | **[D]** The derived clusters were not sufficiently informative after applying principal component analysis on the given analysis data. 
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.6, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -1437,6 +1495,8 @@ grid.arrange(HM_DIANA_ClusterPlot,
 
 ```
 
+</details>
+
 ##  1.6 Algorithm Comparison Summary
 |
 | Algorithm performance comparison:
@@ -1447,6 +1507,10 @@ grid.arrange(HM_DIANA_ClusterPlot,
 |      **[A.3]** **HM_HCLUST: Hierarchical Method - Hierarchical Clustering** (<mark style="background-color: #CCECFF">**factoextra**</mark> package)
 |      **[A.4]** **HM_AGNES: Hierarchical Method - Agglomerative Nesting** (<mark style="background-color: #CCECFF">**cluster**</mark> package)
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.6, warning=FALSE, message=FALSE}
 ##################################
 # Re-plotting the cluster plot for KMEANS
@@ -1588,6 +1652,8 @@ print(SilhouetteWidth_Summary, row.names=FALSE)
                           cex = 2))
 
 ```
+
+</details>
 
 # **2. References**
 |
