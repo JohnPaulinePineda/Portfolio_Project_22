@@ -1,5 +1,5 @@
 ---
-title: 'R : Formulating Segmented Groups Using Clustering Algorithms'
+title: 'Unsupervised Learning : Formulating Segmented Groups Using Clustering Algorithms'
 author: "John Pauline Pineda"
 date: "December 30, 2022"
 output: 
