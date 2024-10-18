@@ -1,0 +1,1728 @@
+---
+title: 'Unsupervised Learning : Formulating Segmented Groups Using Clustering Algorithms'
+author: "John Pauline Pineda"
+date: "December 30, 2022"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    theme: readable
+    highlight: tango
+    css: doc.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width=15, fig.height=10)
+```
+# **1. Table of Contents**
+|
+| This project explores different clustering algorithms for segmenting information using various helpful packages in <mark style="background-color: #CCECFF">**R**</mark>. Methods applied in the analysis to cluster high dimensional data included the **K-Means**, **Partitioning Around Medoids**, **Fuzzy Analysis Clustering**, **Hierarchical Clustering**, **Agglomerative Nesting and Divisive Analysis Clustering** algorithms. The different clustering algorithms were subjectively evaluated based on their capability to effectively capture the latent characteristics between the different resulting clusters. In addition, the values for the average silhouette width obtained for each algorithm were also assessed for an objective comparison of their clustering performance. All results were consolidated in a [<span style="color: #FF0000">**Summary**</span>](#summary) presented at the end of the document.
+|
+| Clustering analysis is a form of unsupervised learning method aimed at identifying similar structural patterns in an unlabeled data set by segmenting the observations into clusters with shared characteristics as compared to those in other clusters. The algorithms applied in this study (mostly contained in the <mark style="background-color: #CCECFF">**stats**</mark> , <mark style="background-color: #CCECFF">**factorextra**</mark> and <mark style="background-color: #CCECFF">**cluster**</mark> packages) attempt to formulate partitioned segments from the data set through the hierarchical (either agglomeratively when smaller clusters are merged into the larger clusters or divisively when larger clusters are divided into smaller clusters) and non-hierarchical (when each observation is placed in exactly one of the mutually exclusive clusters) methods.
+|
+##  1.1 Sample Data
+|
+| The <mark style="background-color: #EEEEEE;color: #FF0000">**NCI6**</mark>  dataset from the  <mark style="background-color: #CCECFF">**ISLR**</mark> package was used for this illustrated example. Only a subset of observations representing major cancer types was used for the analysis.    
+|
+| Preliminary dataset assessment:
+|
+| **[A]** 40 rows (observations)
+| 
+| **[B]** 6831 columns (variables)
+|      **[B.1]** 1/6831 label = <span style="color: #FF0000">labs</span> variable (factor)
+|             **[B.1.1]** Category 1 = <span style="color: #FF0000">labs=NSCLC</span> 
+|             **[B.1.2]** Category 2 = <span style="color: #FF0000">labs=RENAL</span> 
+|             **[B.1.3]** Category 3 = <span style="color: #FF0000">labs=MELANOMA</span> 
+|             **[B.1.4]** Category 4 = <span style="color: #FF0000">labs=BREAST</span> 
+|             **[B.1.5]** Category 5 = <span style="color: #FF0000">labs=COLON</span> 
+|      **[B.2]** 6830/6831 descriptors = 6830/6830 numeric
+|     
+| 
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.1, warning=FALSE, message=FALSE}
+##################################
+# Loading R libraries
+##################################
+library(AppliedPredictiveModeling)
+library(caret)
+library(rpart)
+library(lattice)
+library(dplyr)
+library(tidyr)
+library(moments)
+library(skimr)
+library(RANN)
+library(pls)
+library(corrplot)
+library(tidyverse)
+library(lares)
+library(DMwR)
+library(gridExtra)
+library(rattle)
+library(RColorBrewer)
+library(stats)
+library(ISLR)
+library(factoextra)
+library(NbClust)
+library(cluster)
+
+##################################
+# Loading source and
+# formulating the train set
+##################################
+data(NCI60)
+NCI60 <- as.data.frame(NCI60)
+
+##################################
+# Filtering in the data subset for analysis
+# and setting appropriate variable types
+##################################
+NCI60 <- NCI60[NCI60$labs %in% c("BREAST",
+                                 "RENAL",
+                                 "MELANOMA",
+                                 "NSCLC",
+                                 "COLON"),]
+
+NCI60$labs <- as.factor(NCI60$labs)
+
+NCI60$labs <- factor(NCI60$labs,
+                     levels=c("BREAST",
+                                 "RENAL",
+                                 "MELANOMA",
+                                 "NSCLC",
+                                 "COLON"))
+
+##################################
+# Performing a general exploration of the data set
+##################################
+dim(NCI60)
+str(NCI60)
+summary(NCI60)
+
+##################################
+# Formulating a data type assessment summary
+##################################
+PDA <- NCI60
+(PDA.Summary <- data.frame(
+  Column.Index=c(1:length(names(PDA))),
+  Column.Name= names(PDA), 
+  Column.Type=sapply(PDA, function(x) class(x)), 
+  row.names=NULL)
+)
+```
+
+</details>
+
+##  1.2 Data Quality Assessment
+|
+| **[A]** No missing observations noted for any variable.
+|
+| **[B]** Low variance observed for 610 variables with First.Second.Mode.Ratio>5.
+|
+| **[C]** No low variance observed for any variable with Unique.Count.Ratio<0.01.
+|
+| **[D]** High skewness observed for 14 variables with Skewness>3 or Skewness<(-3).
+| 
+| **[E]** Considering the unsupervised learning nature of the analysis, no data pre-processing was proceeded to address the data quality issues identified.
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.2, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+DQA <- NCI60
+
+##################################
+# Formulating an overall data quality assessment summary
+##################################
+(DQA.Summary <- data.frame(
+  Column.Index=c(1:length(names(DQA))),
+  Column.Name= names(DQA),
+  Column.Type=sapply(DQA, function(x) class(x)),
+  Row.Count=sapply(DQA, function(x) nrow(DQA)),
+  NA.Count=sapply(DQA,function(x)sum(is.na(x))),
+  Fill.Rate=sapply(DQA,function(x)format(round((sum(!is.na(x))/nrow(DQA)),3),nsmall=3)),
+  row.names=NULL)
+)
+
+##################################
+# Listing all descriptors
+##################################
+DQA.Descriptors <- DQA
+
+##################################
+# Listing all numeric Descriptors
+##################################
+DQA.Descriptors.Numeric <- DQA.Descriptors[,sapply(DQA.Descriptors, is.numeric)]
+
+if (length(names(DQA.Descriptors.Numeric))>0) {
+    print(paste0("There are ",
+               (length(names(DQA.Descriptors.Numeric))),
+               " numeric descriptor variable(s)."))
+} else {
+  print("There are no numeric descriptor variables.")
+}
+
+##################################
+# Listing all factor Descriptors
+##################################
+DQA.Descriptors.Factor <- DQA.Descriptors[,sapply(DQA.Descriptors, is.factor)]
+
+if (length(names(DQA.Descriptors.Factor))>0) {
+    print(paste0("There are ",
+               (length(names(DQA.Descriptors.Factor))),
+               " factor descriptor variable(s)."))
+} else {
+  print("There are no factor descriptor variables.")
+}
+
+##################################
+# Formulating a data quality assessment summary for factor Descriptors
+##################################
+if (length(names(DQA.Descriptors.Factor))>0) {
+
+  ##################################
+  # Formulating a function to determine the first mode
+  ##################################
+  FirstModes <- function(x) {
+    ux <- unique(na.omit(x))
+    tab <- tabulate(match(x, ux))
+    ux[tab == max(tab)]
+  }
+
+  ##################################
+  # Formulating a function to determine the second mode
+  ##################################
+  SecondModes <- function(x) {
+    ux <- unique(na.omit(x))
+    tab <- tabulate(match(x, ux))
+    fm = ux[tab == max(tab)]
+    sm = x[!(x %in% fm)]
+    usm <- unique(sm)
+    tabsm <- tabulate(match(sm, usm))
+    ifelse(is.na(usm[tabsm == max(tabsm)])==TRUE,
+           return("x"),
+           return(usm[tabsm == max(tabsm)]))
+  }
+
+  (DQA.Descriptors.Factor.Summary <- data.frame(
+  Column.Name= names(DQA.Descriptors.Factor),
+  Column.Type=sapply(DQA.Descriptors.Factor, function(x) class(x)),
+  Unique.Count=sapply(DQA.Descriptors.Factor, function(x) length(unique(x))),
+  First.Mode.Value=sapply(DQA.Descriptors.Factor, function(x) as.character(FirstModes(x)[1])),
+  Second.Mode.Value=sapply(DQA.Descriptors.Factor, function(x) as.character(SecondModes(x)[1])),
+  First.Mode.Count=sapply(DQA.Descriptors.Factor, function(x) sum(na.omit(x) == FirstModes(x)[1])),
+  Second.Mode.Count=sapply(DQA.Descriptors.Factor, function(x) sum(na.omit(x) == SecondModes(x)[1])),
+  Unique.Count.Ratio=sapply(DQA.Descriptors.Factor, function(x) format(round((length(unique(x))/nrow(DQA.Descriptors.Factor)),3), nsmall=3)),
+  First.Second.Mode.Ratio=sapply(DQA.Descriptors.Factor, function(x) format(round((sum(na.omit(x) == FirstModes(x)[1])/sum(na.omit(x) == SecondModes(x)[1])),3), nsmall=3)),
+  row.names=NULL)
+  )
+
+}
+
+##################################
+# Formulating a data quality assessment summary for numeric Descriptors
+##################################
+if (length(names(DQA.Descriptors.Numeric))>0) {
+
+  ##################################
+  # Formulating a function to determine the first mode
+  ##################################
+  FirstModes <- function(x) {
+    ux <- unique(na.omit(x))
+    tab <- tabulate(match(x, ux))
+    ux[tab == max(tab)]
+  }
+
+  ##################################
+  # Formulating a function to determine the second mode
+  ##################################
+  SecondModes <- function(x) {
+    ux <- unique(na.omit(x))
+    tab <- tabulate(match(x, ux))
+    fm = ux[tab == max(tab)]
+    sm = na.omit(x)[!(na.omit(x) %in% fm)]
+    usm <- unique(sm)
+    tabsm <- tabulate(match(sm, usm))
+    ifelse(is.na(usm[tabsm == max(tabsm)])==TRUE,
+           return(0.00001),
+           return(usm[tabsm == max(tabsm)]))
+  }
+
+  (DQA.Descriptors.Numeric.Summary <- data.frame(
+  Column.Name= names(DQA.Descriptors.Numeric),
+  Column.Type=sapply(DQA.Descriptors.Numeric, function(x) class(x)),
+  Unique.Count=sapply(DQA.Descriptors.Numeric, function(x) length(unique(x))),
+  Unique.Count.Ratio=sapply(DQA.Descriptors.Numeric, function(x) format(round((length(unique(x))/nrow(DQA.Descriptors.Numeric)),3), nsmall=3)),
+  First.Mode.Value=sapply(DQA.Descriptors.Numeric, function(x) format(round((FirstModes(x)[1]),3),nsmall=3)),
+  Second.Mode.Value=sapply(DQA.Descriptors.Numeric, function(x) format(round((SecondModes(x)[1]),3),nsmall=3)),
+  First.Mode.Count=sapply(DQA.Descriptors.Numeric, function(x) sum(na.omit(x) == FirstModes(x)[1])),
+  Second.Mode.Count=sapply(DQA.Descriptors.Numeric, function(x) sum(na.omit(x) == SecondModes(x)[1])),
+  First.Second.Mode.Ratio=sapply(DQA.Descriptors.Numeric, function(x) format(round((sum(na.omit(x) == FirstModes(x)[1])/sum(na.omit(x) == SecondModes(x)[1])),3), nsmall=3)),
+  Minimum=sapply(DQA.Descriptors.Numeric, function(x) format(round(min(x,na.rm = TRUE),3), nsmall=3)),
+  Mean=sapply(DQA.Descriptors.Numeric, function(x) format(round(mean(x,na.rm = TRUE),3), nsmall=3)),
+  Median=sapply(DQA.Descriptors.Numeric, function(x) format(round(median(x,na.rm = TRUE),3), nsmall=3)),
+  Maximum=sapply(DQA.Descriptors.Numeric, function(x) format(round(max(x,na.rm = TRUE),3), nsmall=3)),
+  Skewness=sapply(DQA.Descriptors.Numeric, function(x) format(round(skewness(x,na.rm = TRUE),3), nsmall=3)),
+  Kurtosis=sapply(DQA.Descriptors.Numeric, function(x) format(round(kurtosis(x,na.rm = TRUE),3), nsmall=3)),
+  Percentile25th=sapply(DQA.Descriptors.Numeric, function(x) format(round(quantile(x,probs=0.25,na.rm = TRUE),3), nsmall=3)),
+  Percentile75th=sapply(DQA.Descriptors.Numeric, function(x) format(round(quantile(x,probs=0.75,na.rm = TRUE),3), nsmall=3)),
+  row.names=NULL)
+  )
+
+}
+
+##################################
+# Identifying potential data quality issues
+##################################
+
+##################################
+# Checking for missing observations
+##################################
+if ((nrow(DQA.Summary[DQA.Summary$NA.Count>0,]))>0){
+  print(paste0("Missing observations noted for ",
+               (nrow(DQA.Summary[DQA.Summary$NA.Count>0,])),
+               " variable(s) with NA.Count>0 and Fill.Rate<1.0."))
+  DQA.Summary[DQA.Summary$NA.Count>0,]
+} else {
+  print("No missing observations noted.")
+}
+
+##################################
+# Checking for zero or near-zero variance Descriptors
+##################################
+if (length(names(DQA.Descriptors.Factor))==0) {
+  print("No factor descriptors noted.")
+} else if (nrow(DQA.Descriptors.Factor.Summary[as.numeric(as.character(DQA.Descriptors.Factor.Summary$First.Second.Mode.Ratio))>5,])>0){
+  print(paste0("Low variance observed for ",
+               (nrow(DQA.Descriptors.Factor.Summary[as.numeric(as.character(DQA.Descriptors.Factor.Summary$First.Second.Mode.Ratio))>5,])),
+               " factor variable(s) with First.Second.Mode.Ratio>5."))
+  DQA.Descriptors.Factor.Summary[as.numeric(as.character(DQA.Descriptors.Factor.Summary$First.Second.Mode.Ratio))>5,]
+} else {
+  print("No low variance factor descriptors due to high first-second mode ratio noted.")
+}
+
+if (length(names(DQA.Descriptors.Numeric))==0) {
+  print("No numeric descriptors noted.")
+} else if (nrow(DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$First.Second.Mode.Ratio))>5,])>0){
+  print(paste0("Low variance observed for ",
+               (nrow(DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$First.Second.Mode.Ratio))>5,])),
+               " numeric variable(s) with First.Second.Mode.Ratio>5."))
+  DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$First.Second.Mode.Ratio))>5,]
+} else {
+  print("No low variance numeric descriptors due to high first-second mode ratio noted.")
+}
+
+if (length(names(DQA.Descriptors.Numeric))==0) {
+  print("No numeric descriptors noted.")
+} else if (nrow(DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Unique.Count.Ratio))<0.01,])>0){
+  print(paste0("Low variance observed for ",
+               (nrow(DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Unique.Count.Ratio))<0.01,])),
+               " numeric variable(s) with Unique.Count.Ratio<0.01."))
+  DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Unique.Count.Ratio))<0.01,]
+} else {
+  print("No low variance numeric descriptors due to low unique count ratio noted.")
+}
+
+##################################
+# Checking for skewed Descriptors
+##################################
+if (length(names(DQA.Descriptors.Numeric))==0) {
+  print("No numeric descriptors noted.")
+} else if (nrow(DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Skewness))>3 |
+                                               as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Skewness))<(-3),])>0){
+  print(paste0("High skewness observed for ",
+  (nrow(DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Skewness))>3 |
+                                               as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Skewness))<(-3),])),
+  " numeric variable(s) with Skewness>3 or Skewness<(-3)."))
+  DQA.Descriptors.Numeric.Summary[as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Skewness))>3 |
+                                 as.numeric(as.character(DQA.Descriptors.Numeric.Summary$Skewness))<(-3),]
+} else {
+  print("No skewed numeric descriptors noted.")
+}
+
+```
+
+</details>
+
+##  1.3 Data Preprocessing
+
+###  1.3.1 Centering and Scaling
+|
+| **[A]** To maintain an objective comparison across the different descriptors, centering and scaling transformation was applied on the numeric variables. The <span style="color: #0000FF">center</span> method from the <mark style="background-color: #CCECFF">**caret**</mark> package was implemented which subtracts the average value of a numeric variable to all the values. As a result of centering, the variables had zero mean values. In addition, the <span style="color: #0000FF">scale</span> method, also from the <mark style="background-color: #CCECFF">**caret**</mark> package, was applied which performs a center transformation with each value of the variable divided by its standard deviation. Scaling the data coerced the values to have a common standard deviation of one.
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.3.1, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+DPA <- NCI60
+
+##################################
+# Listing all descriptors
+##################################
+DPA.Descriptors <- DPA
+
+##################################
+# Listing all numeric descriptors
+##################################
+DPA.Descriptors.Numeric <- DPA.Descriptors[,sapply(DPA.Descriptors, is.numeric)]
+
+##################################
+# Applying a center and scale data transformation
+##################################
+DPA.Descriptors.Numeric_CenteredScaled <- preProcess(DPA.Descriptors.Numeric, method = c("center","scale"))
+DPA.Descriptors.Numeric_CenteredScaledTransformed <- predict(DPA.Descriptors.Numeric_CenteredScaled, DPA.Descriptors.Numeric)
+row.names(DPA.Descriptors.Numeric_CenteredScaledTransformed) <- NULL
+
+```
+
+</details>
+
+## 1.4 Data Exploration
+|
+| **[A]** Most descriptors demonstrated differential relationships across the different levels of the <span style="color: #FF0000">Cancer</span> variable. Although, as driven by the huge number, the best descriptors cannot be clearly established. 
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.4, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+Cancer <- NCI60$labs
+NCI60_Transformed <- cbind(DPA.Descriptors.Numeric_CenteredScaledTransformed, Cancer )
+
+EDA <- as.data.frame(NCI60_Transformed)
+
+##################################
+# Creating a function to define the
+# range of descriptors for plotting
+##################################
+
+featurePlotRange <- function(start,end){
+
+  ##################################
+  # Listing all Descriptors
+  ##################################
+  EDA.Descriptors <- EDA[,start:end]
+  EDA.Descriptors.Numeric <- EDA.Descriptors[,sapply(EDA.Descriptors, is.numeric)]
+
+  ##################################
+  # Formulating the box plots
+  ##################################
+  featurePlotResult <- featurePlot(x = EDA.Descriptors.Numeric,
+            y = EDA$Cancer,
+            plot = "box",
+            scales = list(x = list(relation="free", rot = 90),
+                          y = list(relation="free")),
+            adjust = 1.5,
+            pch = "|")
+
+  return(featurePlotResult)
+
+}
+
+##################################
+# Plotting the descriptors
+##################################
+for (i in 0:242){
+  print(featurePlotRange(1+28*i,28*(i+1)))
+}
+
+featurePlotRange(1+28*243,6830)
+
+```
+
+</details>
+
+## 1.5 Clustering and Segmentation
+
+###  1.5.1 Partitioning Method - K-Means (PM_KMEANS)
+|
+| [K-Means Clustering](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) groups similar data points together into clusters by minimizing the mean distance between geometric points. The algorithm iteratively partitions data sets into a fixed number of non-overlapping k subgroups or clusters wherein each data point belongs to the cluster with the nearest mean cluster center. The process begins by initializing all the coordinates into a pre-defined k number of cluster centers. With every pass of the algorithm, each point is assigned to its nearest cluster center. The cluster centers are then updated to be the centers of all the points assigned to it in that pass. This is performed by re-calculating the cluster centers as the average of the points in each respective cluster. The algorithm repeats until there’s a minimum change of the cluster centers from the last iteration.
+|
+| **[A]** The k-means algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**stats**</mark> package.  
+|
+| **[B]** The optimal number of clusters was 3 to 4 as determined using the average silhouette width, total within sum of squares and gap statistic.
+|
+| **[C]** Using a fixed number of clusters equal to 3, the average silhouette width was determined to be 0.08875.
+|
+| **[D]** The derived clusters were sufficiently informative after applying principal component analysis on the given analysis data. 
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.1, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+CS <- EDA
+
+CS.Numeric <- CS[,sapply(CS, is.numeric)]
+
+row.names(CS.Numeric) <- c("RENAL.1","BREAST.1","BREAST.2","NSCLC.1","NSCLC.2","RENAL.2","RENAL.3","RENAL.4",
+                           "RENAL.5","RENAL.6","RENAL.7","RENAL.8","BREAST.3","NSCLC.3","RENAL.9","MELANOMA.1",
+                           "NSCLC.4","NSCLC.5","NSCLC.6","COLON.1","COLON.2","COLON.3","COLON.4","COLON.5",
+                           "COLON.6","COLON.7","BREAST.4","BREAST.5","NSCLC.7","NSCLC.8","NSCLC.9","MELANOMA.2",
+                           "BREAST.6","BREAST.7","MELANOMA.3","MELANOMA.4","MELANOMA.5","MELANOMA.6","MELANOMA.7","MELANOMA.8")
+
+##################################
+# Evaluating for optimal number of clusters
+# using the silhouette method
+##################################
+CS_PM_KMEANS_OptimalKPlot_Silhouette <- fviz_nbclust(CS.Numeric, 
+                                          kmeans, 
+                                          method = "silhouette",
+                                          k.max = 5) +
+  labs(title = "PM_KMEANS : Optimal Number of Clusters",
+       subtitle = "Silhouette Method",
+       y = "Average Silhouette Width",
+       x = "Number of Clusters") +
+  theme_classic()
+
+##################################
+# Evaluating for optimal number of clusters
+# using the elbow method
+#################################
+CS_PM_KMEANS_OptimalKPlot_Elbow <- fviz_nbclust(CS.Numeric, 
+                                          kmeans, 
+                                          method = "wss",
+                                          k.max = 5) +
+  labs(title = "PM_KMEANS : Optimal Number of Clusters",
+       subtitle = "Elbow Method",
+       y = "Total Within Sum of Squares",
+       x = "Number of Clusters") +
+  geom_vline(xintercept = 4, linetype = 2, color="steelblue") +
+  theme_classic()
+
+##################################
+# Evaluating for optimal number of clusters
+# using the gap statistic method
+#################################
+set.seed(12345678)
+CS_PM_KMEANS_OptimalKPlot_Gap <- fviz_nbclust(CS.Numeric, 
+                                          kmeans, 
+                                          method = "gap_stat",
+                                          k.max = 5,
+                                          nstart = 25,
+                                          nboot = 50) +
+  labs(title = "PM_KMEANS : Optimal Number of Clusters",
+       subtitle = "Gap Statistic Method",
+       y = "Gap Statistic",
+       x = "Number of Clusters") +
+  theme_classic()
+
+##################################
+# Performing k-means
+##################################
+set.seed(12345678)
+CS_PM_KMEANS <- kmeans(CS.Numeric, centers=3, nstart=100)
+
+##################################
+# Measuring the silhouette metric
+##################################
+CS_PM_KMEANS_Silhouette <- silhouette(CS_PM_KMEANS$cluster, dist(CS.Numeric))
+CS_PM_KMEANS_SilhouettePlot <- fviz_silhouette(CS_PM_KMEANS_Silhouette) +
+  labs(title = "PM_KMEANS : Clusters Silhouette Plot",
+       subtitle = "Average Silhouette Width : 0.08875",
+       y = "Silhouette Width",
+       x = "Observation Indices") +
+  theme_classic() +
+  theme(legend.position="top")
+
+CS_PM_KMEANS_Silhouette_Summary <- summary(CS_PM_KMEANS_Silhouette)
+
+(SI_CS_PM_KMEANS <- CS_PM_KMEANS_Silhouette_Summary$avg.width)
+
+##################################
+# Gathering all optimal k assessment plots
+##################################
+grid.arrange(CS_PM_KMEANS_OptimalKPlot_Silhouette, 
+             CS_PM_KMEANS_SilhouettePlot,
+             CS_PM_KMEANS_OptimalKPlot_Elbow,
+             CS_PM_KMEANS_OptimalKPlot_Gap,
+             ncol = 2)
+
+##################################
+# Formulating the cluster plot
+# for partition methods
+##################################
+fviz_cluster(CS_PM_KMEANS, CS.Numeric, ellipse.type = "norm") +
+  labs(title = "PM_KMEANS : Cluster Plot") +
+  theme_classic() +
+  theme(legend.position="top")
+  
+##################################
+# Performing PCA
+##################################
+CS_PCA <- prcomp(CS.Numeric)
+
+##################################
+# Consolidating the PCA components
+##################################
+rownames(CS_PCA$x) <- NULL
+CS_PCA$x <- as.data.frame(CS_PCA$x)
+Cancer <- EDA$Cancer
+Cluster <- CS_PM_KMEANS$cluster
+(CS_PCA_FULL <- cbind(CS_PCA$x, Cancer, Cluster))
+CS_PCA_FULL$Algorithm <- rep("PM_KMEANS",nrow(CS_PCA_FULL))
+
+table(CS_PCA_FULL$Cancer, CS_PCA_FULL$Cluster)
+
+PM_KMEANS_PCA_FULL <- CS_PCA_FULL
+
+##################################
+# Plotting the best PCA components
+# grouped by cluster
+##################################
+PM_KMEANS_ClusterPlot <- xyplot(PC1 ~ PC2,
+       groups = CS_PCA_FULL$Cluster,
+       data = CS_PCA_FULL,
+       xlab = "PC2",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 3,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "PM_KMEANS BY CLUSTER")
+
+##################################
+# Plotting the best PCA components
+# grouped by cancer
+##################################
+PM_KMEANS_CancerPlot <- xyplot(PC1 ~ PC2,
+       groups = CS_PCA_FULL$Cancer,
+       data = CS_PCA_FULL,
+       xlab = "PC2",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 3,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "PM_KMEANS BY CANCER")
+
+grid.arrange(PM_KMEANS_ClusterPlot, 
+             PM_KMEANS_CancerPlot, 
+             ncol = 1)
+```
+
+</details>
+
+###  1.5.2 Partitioning Method - Partitioning Around Medoids (PM_PAM)
+|
+| [Partitioning Around Medoids](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) performs partitioning (clustering) of the data into k clusters around medoids, representing a more robust version of K-means. The algorithm is based on the search for k representative objects or medoids among the observations of the data set. These observations should represent the structure of the data. After finding a set of k medoids, k clusters are constructed by assigning each observation to the nearest medoid. The goal is to find k representative objects which minimize the sum of the dissimilarities of the observations to their closest representative object.
+|
+| **[A]** The partitioning around medoids algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**cluster**</mark> package.  
+|
+| **[B]** The optimal number of clusters was 3 as determined using the average silhouette width, total within sum of squares and gap statistic.
+|
+| **[C]** Using a fixed number of clusters equal to 3, the average silhouette width was determined to be 0.08894.
+|
+| **[D]** The derived clusters were sufficiently informative after applying principal component analysis on the given analysis data. 
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.2, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+CS <- EDA
+
+CS.Numeric <- CS[,sapply(CS, is.numeric)]
+
+row.names(CS.Numeric) <- c("RENAL.1","BREAST.1","BREAST.2","NSCLC.1","NSCLC.2","RENAL.2","RENAL.3","RENAL.4",
+                           "RENAL.5","RENAL.6","RENAL.7","RENAL.8","BREAST.3","NSCLC.3","RENAL.9","MELANOMA.1",
+                           "NSCLC.4","NSCLC.5","NSCLC.6","COLON.1","COLON.2","COLON.3","COLON.4","COLON.5",
+                           "COLON.6","COLON.7","BREAST.4","BREAST.5","NSCLC.7","NSCLC.8","NSCLC.9","MELANOMA.2",
+                           "BREAST.6","BREAST.7","MELANOMA.3","MELANOMA.4","MELANOMA.5","MELANOMA.6","MELANOMA.7","MELANOMA.8")
+
+##################################
+# Evaluating for optimal number of clusters
+# using the silhouette method
+##################################
+CS_PM_PAM_OptimalKPlot_Silhouette <- fviz_nbclust(CS.Numeric, 
+                                          cluster::pam, 
+                                          method = "silhouette",
+                                          k.max = 5) +
+  labs(title = "PM_PAM : Optimal Number of Clusters",
+       subtitle = "Silhouette Method",
+       y = "Average Silhouette Width",
+       x = "Number of Clusters") +
+  theme_classic()
+
+##################################
+# Evaluating for optimal number of clusters
+# using the elbow method
+#################################
+CS_PM_PAM_OptimalKPlot_Elbow <- fviz_nbclust(CS.Numeric, 
+                                          cluster::pam, 
+                                          method = "wss",
+                                          k.max = 5) +
+  labs(title = "PM_PAM : Optimal Number of Clusters",
+       subtitle = "Elbow Method",
+       y = "Total Within Sum of Squares",
+       x = "Number of Clusters") +
+  geom_vline(xintercept = 3, linetype = 2, color="steelblue") +
+  theme_classic()
+
+##################################
+# Evaluating for optimal number of clusters
+# using the gap statistic method
+#################################
+set.seed(12345678)
+CS_PM_PAM_OptimalKPlot_Gap <- fviz_nbclust(CS.Numeric, 
+                                          cluster::pam, 
+                                          method = "gap_stat",
+                                          k.max = 5,
+                                          nboot = 50) +
+  labs(title = "PM_PAM : Optimal Number of Clusters",
+       subtitle = "Gap Statistic Method",
+       y = "Gap Statistic",
+       x = "Number of Clusters") +
+  theme_classic()
+
+##################################
+# Performing partitioning around medoids
+##################################
+set.seed(12345678)
+CS_PM_PAM <- pam(CS.Numeric, 3)
+
+##################################
+# Measuring the silhouette metric
+##################################
+CS_PM_PAM_Silhouette <- silhouette(CS_PM_PAM$cluster, dist(CS.Numeric))
+CS_PM_PAM_SilhouettePlot <- fviz_silhouette(CS_PM_PAM_Silhouette) +
+  labs(title = "PM_PAM : Clusters Silhouette Plot",
+       subtitle = "Average Silhouette Width : 0.08894",
+       y = "Silhouette Width",
+       x = "Observation Indices") +
+  theme_classic() +
+  theme(legend.position="top")
+
+CS_PM_PAM_Silhouette_Summary <- summary(CS_PM_PAM_Silhouette)
+
+(SI_CS_PM_PAM <- CS_PM_PAM_Silhouette_Summary$avg.width)
+
+##################################
+# Gathering all optimal k assessment plots
+##################################
+grid.arrange(CS_PM_PAM_OptimalKPlot_Silhouette, 
+             CS_PM_PAM_SilhouettePlot, 
+             CS_PM_PAM_OptimalKPlot_Elbow,
+             CS_PM_PAM_OptimalKPlot_Gap,
+             ncol = 2)
+
+##################################
+# Formulating the cluster plot
+# for partition methods
+##################################
+fviz_cluster(CS_PM_PAM, CS.Numeric, ellipse.type = "norm") +
+  labs(title = "PM_PAM : Cluster Plot") +
+  theme_classic() +
+  theme(legend.position="top")
+  
+##################################
+# Performing PCA
+##################################
+CS_PCA <- prcomp(CS.Numeric)
+
+##################################
+# Consolidating the PCA components
+##################################
+rownames(CS_PCA$x) <- NULL
+CS_PCA$x <- as.data.frame(CS_PCA$x)
+Cancer <- EDA$Cancer
+Cluster <- CS_PM_PAM$cluster
+(CS_PCA_FULL <- cbind(CS_PCA$x, Cancer, Cluster))
+CS_PCA_FULL$Algorithm <- rep("PM_PAM",nrow(CS_PCA_FULL))
+
+table(CS_PCA_FULL$Cancer, CS_PCA_FULL$Cluster)
+
+PM_PAM_PCA_FULL <- CS_PCA_FULL
+
+##################################
+# Plotting the best PCA components
+# grouped by cluster
+##################################
+PM_PAM_ClusterPlot <- xyplot(PC1 ~ PC2,
+       groups = CS_PCA_FULL$Cluster,
+       data = CS_PCA_FULL,
+       xlab = "PC2",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 3,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "PM_PAM BY CLUSTER")
+
+##################################
+# Plotting the best PCA components
+# grouped by cancer
+##################################
+PM_PAM_CancerPlot <- xyplot(PC1 ~ PC2,
+       groups = CS_PCA_FULL$Cancer,
+       data = CS_PCA_FULL,
+       xlab = "PC2",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 3,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "PM_PAM BY CANCER")
+
+grid.arrange(PM_PAM_ClusterPlot, 
+             PM_PAM_CancerPlot, 
+             ncol = 1)
+
+```
+
+</details>
+
+###  1.5.3 Partitioning Method - Fuzzy Analysis Clustering (PM_FANNY)
+|
+| [Fuzzy Analysis Clustering](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) computes a fuzzy clustering of the data into k clusters. In a fuzzy clustering implementation, each observation is spread out over the various clusters represented by non-negative membership values summing up to 1. The algorithm aims to minimize the objective function which involves the number of observations, the number of clusters, membership exponent and dissimilarity indices between observations.
+|
+| **[A]** The fuzzy analysis clustering algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**cluster**</mark> package.  
+|
+| **[B]** The optimal number of clusters was 2 to 3 as determined using the average silhouette width, total within sum of squares and gap statistic.
+|
+| **[C]** Using a fixed number of clusters equal to 3, the average silhouette width was determined to be 0.02497.
+|
+| **[D]** The derived clusters were not sufficiently informative after applying principal component analysis on the given analysis data. 
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.3, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+CS <- EDA
+
+CS.Numeric <- CS[,sapply(CS, is.numeric)]
+
+row.names(CS.Numeric) <- c("RENAL.1","BREAST.1","BREAST.2","NSCLC.1","NSCLC.2","RENAL.2","RENAL.3","RENAL.4",
+                           "RENAL.5","RENAL.6","RENAL.7","RENAL.8","BREAST.3","NSCLC.3","RENAL.9","MELANOMA.1",
+                           "NSCLC.4","NSCLC.5","NSCLC.6","COLON.1","COLON.2","COLON.3","COLON.4","COLON.5",
+                           "COLON.6","COLON.7","BREAST.4","BREAST.5","NSCLC.7","NSCLC.8","NSCLC.9","MELANOMA.2",
+                           "BREAST.6","BREAST.7","MELANOMA.3","MELANOMA.4","MELANOMA.5","MELANOMA.6","MELANOMA.7","MELANOMA.8")
+
+##################################
+# Evaluating for optimal number of clusters
+# using the silhouette method
+##################################
+CS_PM_FANNY_OptimalKPlot_Silhouette <- fviz_nbclust(CS.Numeric, 
+                                          cluster::fanny, 
+                                          method = "silhouette",
+                                          k.max = 5) +
+  labs(title = "PM_FANNY : Optimal Number of Clusters",
+       subtitle = "Silhouette Method",
+       y = "Average Silhouette Width",
+       x = "Number of Clusters") +
+  theme_classic()
+
+##################################
+# Evaluating for optimal number of clusters
+# using the elbow method
+#################################
+CS_PM_FANNY_OptimalKPlot_Elbow <- fviz_nbclust(CS.Numeric, 
+                                          cluster::fanny, 
+                                          method = "wss",
+                                          k.max = 5) +
+  labs(title = "PM_FANNY : Optimal Number of Clusters",
+       subtitle = "Elbow Method",
+       y = "Total Within Sum of Squares",
+       x = "Number of Clusters") +
+  geom_vline(xintercept = 3, linetype = 2, color="steelblue") +
+  theme_classic()
+
+##################################
+# Evaluating for optimal number of clusters
+# using the gap statistic method
+#################################
+set.seed(12345678)
+CS_PM_FANNY_OptimalKPlot_Gap <- fviz_nbclust(CS.Numeric, 
+                                          cluster::fanny, 
+                                          method = "gap_stat",
+                                          k.max = 5,
+                                          nboot = 50) +
+  labs(title = "PM_FANNY : Optimal Number of Clusters",
+       subtitle = "Gap Statistic Method",
+       y = "Gap Statistic",
+       x = "Number of Clusters") +
+  theme_classic()
+
+##################################
+# Performing fuzzy analysis clustering
+##################################
+set.seed(12345678)
+CS_PM_FANNY <- fanny(CS.Numeric, 3)
+
+##################################
+# Measuring the silhouette metric
+##################################
+CS_PM_FANNY_Silhouette <- silhouette(CS_PM_FANNY$cluster, dist(CS.Numeric))
+CS_PM_FANNY_SilhouettePlot <- fviz_silhouette(CS_PM_FANNY_Silhouette) +
+  labs(title = "PM_FANNY : Clusters Silhouette Plot",
+       subtitle = "Average Silhouette Width : 0.02497",
+       y = "Silhouette Width",
+       x = "Observation Indices") +
+  theme_classic() +
+  theme(legend.position="top")
+
+CS_PM_FANNY_Silhouette_Summary <- summary(CS_PM_FANNY_Silhouette)
+
+(SI_CS_PM_FANNY <- CS_PM_FANNY_Silhouette_Summary$avg.width)
+
+##################################
+# Gathering all optimal k assessment plots
+##################################
+grid.arrange(CS_PM_FANNY_OptimalKPlot_Silhouette, 
+             CS_PM_FANNY_SilhouettePlot, 
+             CS_PM_FANNY_OptimalKPlot_Elbow,
+             CS_PM_FANNY_OptimalKPlot_Gap,
+             ncol = 2)
+
+##################################
+# Formulating the cluster plot
+# for partition methods
+##################################
+fviz_cluster(CS_PM_FANNY, CS.Numeric, ellipse.type = "norm") +
+  labs(title = "PM_FANNY : Cluster Plot") +
+  theme_classic() +
+  theme(legend.position="top")
+
+##################################
+# Performing PCA
+##################################
+CS_PCA <- prcomp(CS.Numeric)
+
+##################################
+# Consolidating the PCA components
+##################################
+rownames(CS_PCA$x) <- NULL
+CS_PCA$x <- as.data.frame(CS_PCA$x)
+Cancer <- EDA$Cancer
+Cluster <- CS_PM_FANNY$cluster
+(CS_PCA_FULL <- cbind(CS_PCA$x, Cancer, Cluster))
+CS_PCA_FULL$Algorithm <- rep("PM_FANNY",nrow(CS_PCA_FULL))
+
+table(CS_PCA_FULL$Cancer, CS_PCA_FULL$Cluster)
+
+PM_FANNY_PCA_FULL <- CS_PCA_FULL
+
+##################################
+# Plotting the best PCA components
+# grouped by cluster
+##################################
+PM_FANNY_ClusterPlot <- xyplot(PC1 ~ PC2,
+       groups = CS_PCA_FULL$Cluster,
+       data = CS_PCA_FULL,
+       xlab = "PC2",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 3,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "PM_FANNY BY CLUSTER")
+
+##################################
+# Plotting the best PCA components
+# grouped by cancer
+##################################
+PM_FANNY_CancerPlot <- xyplot(PC1 ~ PC2,
+       groups = CS_PCA_FULL$Cancer,
+       data = CS_PCA_FULL,
+       xlab = "PC2",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 3,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "PM_FANNY BY CANCER")
+
+grid.arrange(PM_FANNY_ClusterPlot, 
+             PM_FANNY_CancerPlot, 
+             ncol = 1)
+
+```
+
+</details>
+
+###  1.5.4 Hierarchical Method - Hierarchical Clustering (HM_HCLUST)
+|
+| [Hierarchical Clustering](https://zbmath.org/0601.62085) performs a hierarchical cluster analysis using a set of dissimilarities for the observations being clustered. Initially, each object is assigned to its own cluster and then the algorithm proceeds iteratively, at each stage joining the two most similar clusters, continuing until there is just a single cluster. At each stage distances between clusters are recomputed by the Lance–Williams dissimilarity update formula according to the complete linkage method which finds similar clusters. The formulated hierarchical cluster tree is eventually cut into k clusters.
+|
+| **[A]** The hierarchical clustering algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**factoextra**</mark> package.  
+|
+| **[B]** The optimal number of clusters was 3 to 4 as determined using the average silhouette width, total within sum of squares and gap statistic.
+|
+| **[C]** Using a fixed number of clusters equal to 3, the average silhouette width was determined to be 0.08172.
+|
+| **[D]** The derived clusters were sufficiently informative after applying principal component analysis on the given analysis data. 
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.4, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+CS <- EDA
+
+CS.Numeric <- CS[,sapply(CS, is.numeric)]
+
+row.names(CS.Numeric) <- c("RENAL.1","BREAST.1","BREAST.2","NSCLC.1","NSCLC.2","RENAL.2","RENAL.3","RENAL.4",
+                           "RENAL.5","RENAL.6","RENAL.7","RENAL.8","BREAST.3","NSCLC.3","RENAL.9","MELANOMA.1",
+                           "NSCLC.4","NSCLC.5","NSCLC.6","COLON.1","COLON.2","COLON.3","COLON.4","COLON.5",
+                           "COLON.6","COLON.7","BREAST.4","BREAST.5","NSCLC.7","NSCLC.8","NSCLC.9","MELANOMA.2",
+                           "BREAST.6","BREAST.7","MELANOMA.3","MELANOMA.4","MELANOMA.5","MELANOMA.6","MELANOMA.7","MELANOMA.8")
+
+##################################
+# Evaluating for optimal number of clusters
+# using the silhouette method
+##################################
+CS_HM_HCLUST_OptimalKPlot_Silhouette <- fviz_nbclust(CS.Numeric, 
+                                          hcut, 
+                                          method = "silhouette",
+                                          k.max = 5) +
+  labs(title = "HM_HCLUST : Optimal Number of Clusters",
+       subtitle = "Silhouette Method",
+       y = "Average Silhouette Width",
+       x = "Number of Clusters") +
+  theme_classic()
+
+##################################
+# Evaluating for optimal number of clusters
+# using the elbow method
+#################################
+CS_HM_HCLUST_OptimalKPlot_Elbow <- fviz_nbclust(CS.Numeric, 
+                                          hcut, 
+                                          method = "wss",
+                                          k.max = 5) +
+  labs(title = "HM_HCLUST : Optimal Number of Clusters",
+       subtitle = "Elbow Method",
+       y = "Total Within Sum of Squares",
+       x = "Number of Clusters") +
+  geom_vline(xintercept = 4, linetype = 2, color="steelblue") +
+  theme_classic()
+
+##################################
+# Evaluating for optimal number of clusters
+# using the gap statistic method
+#################################
+set.seed(12345678)
+CS_HM_HCLUST_OptimalKPlot_Gap <- fviz_nbclust(CS.Numeric, 
+                                          hcut, 
+                                          method = "gap_stat",
+                                          k.max = 5,
+                                          nboot = 50) +
+  labs(title = "HM_HCLUST : Optimal Number of Clusters",
+       subtitle = "Gap Statistic Method",
+       y = "Gap Statistic",
+       x = "Number of Clusters") +
+  theme_classic()
+
+##################################
+# Performing hierarchical clustering
+##################################
+set.seed(12345678)
+CS_HM_HCLUST <-  hcut(CS.Numeric, k=3, hc_func = c("hclust"))
+
+##################################
+# Measuring the silhouette metric
+##################################
+CS_HM_HCLUST_Silhouette <- silhouette(CS_HM_HCLUST$cluster, dist(CS.Numeric))
+CS_HM_HCLUST_SilhouettePlot <- fviz_silhouette(CS_HM_HCLUST_Silhouette) +
+  labs(title = "HM_HCLUST : Clusters Silhouette Plot",
+       subtitle = "Average Silhouette Width : 0.08172",
+       y = "Silhouette Width",
+       x = "Observation Indices") +
+  theme_classic() +
+  theme(legend.position="top")
+
+CS_HM_HCLUST_Silhouette_Summary <- summary(CS_HM_HCLUST_Silhouette)
+
+(SI_CS_HM_HCLUST <- CS_HM_HCLUST_Silhouette_Summary$avg.width)
+
+##################################
+# Gathering all optimal k assessment plots
+##################################
+grid.arrange(CS_HM_HCLUST_OptimalKPlot_Silhouette, 
+             CS_HM_HCLUST_SilhouettePlot, 
+             CS_HM_HCLUST_OptimalKPlot_Elbow,
+             CS_HM_HCLUST_OptimalKPlot_Gap,
+             ncol = 2)
+
+##################################
+# Formulating the dendrogram
+# for hierarchical methods
+##################################
+fviz_dend(CS_HM_HCLUST, rect = TRUE) +
+  labs(title = "HM_HCLUST : Dendrogram") +
+  theme_classic() +
+  theme(legend.position="top")
+
+##################################
+# Performing PCA
+##################################
+CS_PCA <- prcomp(CS.Numeric)
+
+##################################
+# Consolidating the PCA components
+##################################
+rownames(CS_PCA$x) <- NULL
+CS_PCA$x <- as.data.frame(CS_PCA$x)
+Cancer <- EDA$Cancer
+Cluster <- CS_HM_HCLUST$cluster
+(CS_PCA_FULL <- cbind(CS_PCA$x, Cancer, Cluster))
+CS_PCA_FULL$Algorithm <- rep("HM_HCLUST",nrow(CS_PCA_FULL))
+
+table(CS_PCA_FULL$Cancer, CS_PCA_FULL$Cluster)
+
+HM_HCLUST_PCA_FULL <- CS_PCA_FULL
+
+##################################
+# Plotting the best PCA components
+# grouped by cluster
+##################################
+HM_HCLUST_ClusterPlot <- xyplot(PC1 ~ PC2,
+       groups = CS_PCA_FULL$Cluster,
+       data = CS_PCA_FULL,
+       xlab = "PC2",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 3,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "HM_HCLUST BY CLUSTER")
+
+##################################
+# Plotting the best PCA components
+# grouped by cancer
+##################################
+HM_HCLUST_CancerPlot <- xyplot(PC1 ~ PC2,
+       groups = CS_PCA_FULL$Cancer,
+       data = CS_PCA_FULL,
+       xlab = "PC2",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 3,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "HM_HCLUST BY CANCER")
+
+grid.arrange(HM_HCLUST_ClusterPlot, 
+             HM_HCLUST_CancerPlot, 
+             ncol = 1)
+
+```
+
+</details>
+
+###  1.5.5 Hierarchical Method - Agglomerative Nesting (HM_AGNES)
+|
+| [Agglomerative Nesting](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) computes an agglomerative hierarchical clustering of the data set. The algorithm constructs a hierarchy of clusterings. At first, each observation is a small cluster by itself. Clusters are merged until only one large cluster remains which contains all the observations. At each stage the two nearest clusters are combined to form one larger cluster. Euclidean distance, which are root sum-of-squares of differences, is used for calculating dissimilarities between observations. The distance between two clusters is the average of the dissimilarities between the points in one cluster and the points in the other cluster.
+|
+| **[A]** The agglomerative nesting algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**cluster**</mark> package.  
+|
+| **[B]** The optimal number of clusters was 3 as determined using the average silhouette width, total within sum of squares and gap statistic.
+|
+| **[C]** Using a fixed number of clusters equal to 3, the average silhouette width was determined to be 0.08172.
+|
+| **[D]** The derived clusters were sufficiently informative after applying principal component analysis on the given analysis data. 
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.5, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+CS <- EDA
+
+CS.Numeric <- CS[,sapply(CS, is.numeric)]
+
+row.names(CS.Numeric) <- c("RENAL.1","BREAST.1","BREAST.2","NSCLC.1","NSCLC.2","RENAL.2","RENAL.3","RENAL.4",
+                           "RENAL.5","RENAL.6","RENAL.7","RENAL.8","BREAST.3","NSCLC.3","RENAL.9","MELANOMA.1",
+                           "NSCLC.4","NSCLC.5","NSCLC.6","COLON.1","COLON.2","COLON.3","COLON.4","COLON.5",
+                           "COLON.6","COLON.7","BREAST.4","BREAST.5","NSCLC.7","NSCLC.8","NSCLC.9","MELANOMA.2",
+                           "BREAST.6","BREAST.7","MELANOMA.3","MELANOMA.4","MELANOMA.5","MELANOMA.6","MELANOMA.7","MELANOMA.8")
+
+##################################
+# Evaluating for optimal number of clusters
+# using the silhouette method
+##################################
+CS_HM_AGNES_OptimalKPlot_Silhouette <- fviz_nbclust(CS.Numeric, 
+                                          hcut, 
+                                          method = "silhouette",
+                                          k.max = 5) +
+  labs(title = "HM_AGNES : Optimal Number of Clusters",
+       subtitle = "Silhouette Method",
+       y = "Average Silhouette Width",
+       x = "Number of Clusters") +
+  theme_classic()
+
+##################################
+# Evaluating for optimal number of clusters
+# using the elbow method
+#################################
+CS_HM_AGNES_OptimalKPlot_Elbow <- fviz_nbclust(CS.Numeric, 
+                                          hcut, 
+                                          method = "wss",
+                                          k.max = 5) +
+  labs(title = "HM_AGNES : Optimal Number of Clusters",
+       subtitle = "Elbow Method",
+       y = "Total Within Sum of Squares",
+       x = "Number of Clusters") +
+  geom_vline(xintercept = 3, linetype = 2, color="steelblue") +
+  theme_classic()
+
+##################################
+# Evaluating for optimal number of clusters
+# using the gap statistic method
+#################################
+set.seed(12345678)
+CS_HM_AGNES_OptimalKPlot_Gap <- fviz_nbclust(CS.Numeric, 
+                                          hcut, 
+                                          method = "gap_stat",
+                                          k.max = 5,
+                                          nboot = 50) +
+  labs(title = "HM_AGNES : Optimal Number of Clusters",
+       subtitle = "Gap Statistic Method",
+       y = "Gap Statistic",
+       x = "Number of Clusters") +
+  theme_classic()
+
+##################################
+# Performing agglomerative nesting
+##################################
+set.seed(12345678)
+CS_HM_AGNES <-  hcut(CS.Numeric, k=3, hc_func = c("agnes"))
+
+##################################
+# Measuring the silhouette metric
+##################################
+CS_HM_AGNES_Silhouette <- silhouette(CS_HM_AGNES$cluster, dist(CS.Numeric))
+CS_HM_AGNES_SilhouettePlot <- fviz_silhouette(CS_HM_AGNES_Silhouette) +
+  labs(title = "HM_AGNES : Clusters Silhouette Plot",
+       subtitle = "Average Silhouette Width : 0.08172",
+       y = "Silhouette Width",
+       x = "Observation Indices") +
+  theme_classic() +
+  theme(legend.position="top")
+
+CS_HM_AGNES_Silhouette_Summary <- summary(CS_HM_AGNES_Silhouette)
+
+(SI_CS_HM_AGNES <- CS_HM_AGNES_Silhouette_Summary$avg.width)
+
+##################################
+# Gathering all optimal k assessment plots
+##################################
+grid.arrange(CS_HM_AGNES_OptimalKPlot_Silhouette, 
+             CS_HM_AGNES_SilhouettePlot, 
+             CS_HM_AGNES_OptimalKPlot_Elbow,
+             CS_HM_AGNES_OptimalKPlot_Gap,
+             ncol = 2)
+
+##################################
+# Formulating the dendrogram
+# for hierarchical methods
+##################################
+fviz_dend(CS_HM_AGNES, rect = TRUE) +
+  labs(title = "HM_AGNES : Dendrogram") +
+  theme_classic() +
+  theme(legend.position="top")
+
+##################################
+# Performing PCA
+##################################
+CS_PCA <- prcomp(CS.Numeric)
+
+##################################
+# Consolidating the PCA components
+##################################
+rownames(CS_PCA$x) <- NULL
+CS_PCA$x <- as.data.frame(CS_PCA$x)
+Cancer <- EDA$Cancer
+Cluster <- CS_HM_AGNES$cluster
+(CS_PCA_FULL <- cbind(CS_PCA$x, Cancer, Cluster))
+CS_PCA_FULL$Algorithm <- rep("HM_AGNES",nrow(CS_PCA_FULL))
+
+table(CS_PCA_FULL$Cancer, CS_PCA_FULL$Cluster)
+
+HM_AGNES_PCA_FULL <- CS_PCA_FULL
+
+##################################
+# Plotting the best PCA components
+# grouped by cluster
+##################################
+HM_AGNES_ClusterPlot <- xyplot(PC1 ~ PC2,
+       groups = CS_PCA_FULL$Cluster,
+       data = CS_PCA_FULL,
+       xlab = "PC2",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 3,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "HM_AGNES BY CLUSTER")
+
+##################################
+# Plotting the best PCA components
+# grouped by cancer
+##################################
+HM_AGNES_CancerPlot <- xyplot(PC1 ~ PC2,
+       groups = CS_PCA_FULL$Cancer,
+       data = CS_PCA_FULL,
+       xlab = "PC2",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 3,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "HM_AGNES BY CANCER")
+
+grid.arrange(HM_AGNES_ClusterPlot, 
+             HM_AGNES_CancerPlot, 
+             ncol = 1)
+
+```
+
+</details>
+
+###  1.5.6 Hierarchical Method - Divisive Analysis Clustering (HM_DIANA)
+|
+| [Divisive Analysis Clustering](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) computes a divisive hierarchical clustering of the dataset the data set. The algorithm constructs a hierarchy of clusterings, starting with one large cluster containing all observations. Clusters are divided until each cluster contains only a single observation. At each stage, the cluster with the largest diameter is selected (the diameter of a cluster is the largest dissimilarity between any two of its observations). To divide the selected cluster, the algorithm first looks for its most disparate observation (i.e., which has the largest average dissimilarity to the other observations of the selected cluster). This observation initiates the splinter group. In subsequent steps, the algorithm reassigns observations that are closer to the splinter group than to the original group, resulting to the division of the selected cluster into two new clusters.
+|
+| **[A]** The divisive analysis clustering algorithm was implemented only for descriptors using the <mark style="background-color: #CCECFF">**cluster**</mark> package.  
+|
+| **[B]** The optimal number of clusters was 3 as determined using the average silhouette width, total within sum of squares and gap statistic.
+|
+| **[C]** Using a fixed number of clusters equal to 3, the average silhouette width was determined to be 0.06662.
+|
+| **[D]** The derived clusters were not sufficiently informative after applying principal component analysis on the given analysis data. 
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.6, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+CS <- EDA
+
+CS.Numeric <- CS[,sapply(CS, is.numeric)]
+
+row.names(CS.Numeric) <- c("RENAL.1","BREAST.1","BREAST.2","NSCLC.1","NSCLC.2","RENAL.2","RENAL.3","RENAL.4",
+                           "RENAL.5","RENAL.6","RENAL.7","RENAL.8","BREAST.3","NSCLC.3","RENAL.9","MELANOMA.1",
+                           "NSCLC.4","NSCLC.5","NSCLC.6","COLON.1","COLON.2","COLON.3","COLON.4","COLON.5",
+                           "COLON.6","COLON.7","BREAST.4","BREAST.5","NSCLC.7","NSCLC.8","NSCLC.9","MELANOMA.2",
+                           "BREAST.6","BREAST.7","MELANOMA.3","MELANOMA.4","MELANOMA.5","MELANOMA.6","MELANOMA.7","MELANOMA.8")
+
+##################################
+# Evaluating for optimal number of clusters
+# using the silhouette method
+##################################
+CS_HM_DIANA_OptimalKPlot_Silhouette <- fviz_nbclust(CS.Numeric, 
+                                          hcut, 
+                                          method = "silhouette",
+                                          k.max = 5) +
+  labs(title = "HM_DIANA : Optimal Number of Clusters",
+       subtitle = "Silhouette Method",
+       y = "Average Silhouette Width",
+       x = "Number of Clusters") +
+  theme_classic()
+
+##################################
+# Evaluating for optimal number of clusters
+# using the elbow method
+#################################
+CS_HM_DIANA_OptimalKPlot_Elbow <- fviz_nbclust(CS.Numeric, 
+                                          hcut, 
+                                          method = "wss",
+                                          k.max = 5) +
+  labs(title = "HM_DIANA : Optimal Number of Clusters",
+       subtitle = "Elbow Method",
+       y = "Total Within Sum of Squares",
+       x = "Number of Clusters") +
+  geom_vline(xintercept = 3, linetype = 2, color="steelblue") +
+  theme_classic()
+
+##################################
+# Evaluating for optimal number of clusters
+# using the gap statistic method
+#################################
+set.seed(12345678)
+CS_HM_DIANA_OptimalKPlot_Gap <- fviz_nbclust(CS.Numeric, 
+                                          hcut, 
+                                          method = "gap_stat",
+                                          k.max = 5,
+                                          nboot = 50) +
+  labs(title = "HM_DIANA : Optimal Number of Clusters",
+       subtitle = "Gap Statistic Method",
+       y = "Gap Statistic",
+       x = "Number of Clusters") +
+  theme_classic()
+
+##################################
+# Performing divisive analysis clustering
+##################################
+set.seed(12345678)
+CS_HM_DIANA <-  hcut(CS.Numeric, k=3, hc_func = c("diana"))
+
+##################################
+# Measuring the silhouette metric
+##################################
+CS_HM_DIANA_Silhouette <- silhouette(CS_HM_DIANA$cluster, dist(CS.Numeric))
+CS_HM_DIANA_SilhouettePlot <- fviz_silhouette(CS_HM_DIANA_Silhouette) +
+  labs(title = "HM_DIANA : Clusters Silhouette Plot",
+       subtitle = "Average Silhouette Width : 0.06662",
+       y = "Silhouette Width",
+       x = "Observation Indices") +
+  theme_classic() +
+  theme(legend.position="top")
+
+CS_HM_DIANA_Silhouette_Summary <- summary(CS_HM_DIANA_Silhouette)
+
+(SI_CS_HM_DIANA <- CS_HM_DIANA_Silhouette_Summary$avg.width)
+
+##################################
+# Gathering all optimal k assessment plots
+##################################
+grid.arrange(CS_HM_DIANA_OptimalKPlot_Silhouette, 
+             CS_HM_DIANA_SilhouettePlot, 
+             CS_HM_DIANA_OptimalKPlot_Elbow,
+             CS_HM_DIANA_OptimalKPlot_Gap,
+             ncol = 2)
+
+##################################
+# Formulating the dendrogram
+# for hierarchical methods
+##################################
+fviz_dend(CS_HM_DIANA, rect = TRUE) +
+  labs(title = "HM_DIANA : Dendrogram") +
+  theme_classic() +
+  theme(legend.position="top")
+
+##################################
+# Performing PCA
+##################################
+CS_PCA <- prcomp(CS.Numeric)
+
+##################################
+# Consolidating the PCA components
+##################################
+rownames(CS_PCA$x) <- NULL
+CS_PCA$x <- as.data.frame(CS_PCA$x)
+Cancer <- EDA$Cancer
+Cluster <- CS_HM_DIANA$cluster
+(CS_PCA_FULL <- cbind(CS_PCA$x, Cancer, Cluster))
+CS_PCA_FULL$Algorithm <- rep("HM_DIANA",nrow(CS_PCA_FULL))
+
+table(CS_PCA_FULL$Cancer, CS_PCA_FULL$Cluster)
+
+HM_DIANA_PCA_FULL <- CS_PCA_FULL
+
+##################################
+# Plotting the best PCA components
+# grouped by cluster
+##################################
+HM_DIANA_ClusterPlot <- xyplot(PC1 ~ PC2,
+       groups = CS_PCA_FULL$Cluster,
+       data = CS_PCA_FULL,
+       xlab = "PC2",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 3,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "HM_DIANA BY CLUSTER")
+
+##################################
+# Plotting the best PCA components
+# grouped by cancer
+##################################
+HM_DIANA_CancerPlot <- xyplot(PC1 ~ PC2,
+       groups = CS_PCA_FULL$Cancer,
+       data = CS_PCA_FULL,
+       xlab = "PC2",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 3,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"),
+       main = "HM_DIANA BY CANCER")
+
+grid.arrange(HM_DIANA_ClusterPlot, 
+             HM_DIANA_CancerPlot, 
+             ncol = 1)
+
+```
+
+</details>
+
+##  1.6 Consolidated Findings
+|
+| **[A]** The clustering and segmentation algorithms applied only to the descriptors which were able to effectively capture the latent characteristics between the different clusters are the following :
+|      **[A.1]** **PM_KMEANS: Partitioning Method - K-Means** (<mark style="background-color: #CCECFF">**stats**</mark> package)
+|      **[A.2]** **PM_PAM: Partitioning Method - Partitioning Around Medoids** (<mark style="background-color: #CCECFF">**cluster**</mark> package)
+|      **[A.3]** **HM_HCLUST: Hierarchical Method - Hierarchical Clustering** (<mark style="background-color: #CCECFF">**factoextra**</mark> package)
+|      **[A.4]** **HM_AGNES: Hierarchical Method - Agglomerative Nesting** (<mark style="background-color: #CCECFF">**cluster**</mark> package)
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.6, warning=FALSE, message=FALSE}
+##################################
+# Re-plotting the cluster plot for KMEANS
+##################################
+PM_KMEANS_ClusterPlot <- xyplot(PC1 ~ PC2 | Algorithm,
+       groups = PM_KMEANS_PCA_FULL$Cluster,
+       data = PM_KMEANS_PCA_FULL,
+       xlab = "PC2",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"))
+
+##################################
+# Re-plotting the cluster plot for PAM
+##################################
+PM_PAM_ClusterPlot <- xyplot(PC1 ~ PC2 | Algorithm,
+       groups = PM_PAM_PCA_FULL$Cluster,
+       data = PM_PAM_PCA_FULL,
+       xlab = "PC2",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"))
+
+##################################
+# Re-plotting the cluster plot for FANNY
+##################################
+PM_FANNY_ClusterPlot <- xyplot(PC1 ~ PC2 | Algorithm,
+       groups = PM_FANNY_PCA_FULL$Cluster,
+       data = PM_FANNY_PCA_FULL,
+       xlab = "PC2",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"))
+
+##################################
+# Re-plotting the cluster plot for HCLUST
+##################################
+HM_HCLUST_ClusterPlot <- xyplot(PC1 ~ PC2 | Algorithm,
+       groups = HM_HCLUST_PCA_FULL$Cluster,
+       data = HM_HCLUST_PCA_FULL,
+       xlab = "PC2",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"))
+
+##################################
+# Re-plotting the cluster plot for AGNES
+##################################
+HM_AGNES_ClusterPlot <- xyplot(PC1 ~ PC2 | Algorithm,
+       groups = HM_AGNES_PCA_FULL$Cluster,
+       data = HM_AGNES_PCA_FULL,
+       xlab = "PC2",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"))
+
+##################################
+# Re-plotting the cluster plot for DIANA
+##################################
+HM_DIANA_ClusterPlot <- xyplot(PC1 ~ PC2 | Algorithm,
+       groups = HM_DIANA_PCA_FULL$Cluster,
+       data = HM_DIANA_PCA_FULL,
+       xlab = "PC2",
+       ylab = "PC1",
+       type = "p",
+       pch = 16,
+       cex = 2,
+       alpha = 0.45,
+       auto.key = list(points = TRUE, space = "top"))
+
+################################################################################
+# Consolidating all algorithm performance results
+################################################################################
+grid.arrange(PM_KMEANS_ClusterPlot, 
+             PM_PAM_ClusterPlot, 
+             PM_FANNY_ClusterPlot,
+             HM_HCLUST_ClusterPlot,
+             HM_AGNES_ClusterPlot,
+             HM_DIANA_ClusterPlot,
+             ncol = 3)
+
+
+##################################
+# Consolidating all average silhouette width
+# for the analysis data
+##################################
+ClusteringAlgorithm <- c('PM_KMEANS','PM_PAM','PM_FANNY','HM_HCLUST','HM_AGNES','HM_DIANA')
+
+Set <- c(rep('Analysis',6))
+
+SilhouetteWidth <- c(SI_CS_PM_KMEANS,
+                     SI_CS_PM_PAM,
+                     SI_CS_PM_FANNY,
+                     SI_CS_HM_HCLUST,
+                     SI_CS_HM_AGNES,
+                     SI_CS_HM_DIANA)
+
+SilhouetteWidth_Summary <- as.data.frame(cbind(ClusteringAlgorithm,Set,SilhouetteWidth))
+
+SilhouetteWidth_Summary$SilhouetteWidth <- as.numeric(as.character(SilhouetteWidth_Summary$SilhouetteWidth))
+SilhouetteWidth_Summary$Set <- factor(SilhouetteWidth_Summary$Set,
+                               levels = c("Analysis"))
+SilhouetteWidth_Summary$ClusteringAlgorithm <- factor(SilhouetteWidth_Summary$ClusteringAlgorithm,
+                                                      levels = c('PM_KMEANS',
+                                                                 'PM_PAM',
+                                                                 'PM_FANNY',
+                                                                 'HM_HCLUST',
+                                                                 'HM_AGNES',
+                                                                 'HM_DIANA'))
+
+print(SilhouetteWidth_Summary, row.names=FALSE)
+
+(SilhouetteWidth_Plot <- dotplot(ClusteringAlgorithm ~ SilhouetteWidth,
+                          data = SilhouetteWidth_Summary,
+                          groups = Set,
+                          main = "Clustering Algorithm Performance Comparison",
+                          ylab = "Algorithm",
+                          xlab = "Average Silhouette Width",
+                          auto.key = list(adj = 1),
+                          type=c("p", "h"),
+                          origin = 0,
+                          alpha = 0.45,
+                          pch = 16,
+                          cex = 2))
+
+```
+
+</details>
+|
+# **2. Summary** <a name="summary"></a>
+|
+| ![](D:/Github_Codes/ProjectPortfolio/Portfolio_Project_22/docs/Project22_Summary.png)
+|
+# **3. References**
+|
+| **[Book]** [Applied Predictive Modeling](http://appliedpredictivemodeling.com/) by Max Kuhn and Kjell Johnson
+| **[Book]** [An Introduction to Statistical Learning](https://www.statlearning.com/) by Gareth James, Daniela Witten, Trevor Hastie and Rob Tibshirani
+| **[Book]** [Multivariate Data Visualization with R](http://lmdvr.r-forge.r-project.org/figures/figures.html) by Deepayan Sarkar
+| **[Book]** [Machine Learning](https://bookdown.org/ssjackson300/Machine-Learning-Lecture-Notes/) by Samuel Jackson
+| **[Book]** [Data Modeling Methods](https://bookdown.org/larget_jacob/data-modeling-methods/) by Jacob Larget
+| **[Book]** [Introduction to R and Statistics](https://saestatsteaching.tech/) by University of Western Australia
+| **[Book]** [Feature Engineering and Selection: A Practical Approach for Predictive Models](http://www.feat.engineering/index.html) by Max Kuhn and Kjell Johnson
+| **[Book]** [Introduction to Research Methods](https://bookdown.org/ejvanholm/Textbook/) by Eric van Holm
+| **[Book]** [Finding Groups in Data: An Introduction to Cluster Analysis](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801) by Leonard Kaufman and Peter Rousseeuw
+| **[R Package]** [AppliedPredictiveModeling](https://cran.r-project.org/web//packages/AppliedPredictiveModeling/AppliedPredictiveModeling.pdf) by Max Kuhn
+| **[R Package]** [caret](https://topepo.github.io/caret/index.html) by Max Kuhn
+| **[R Package]** [rpart](https://mran.microsoft.com/web/packages/rpart/rpart.pdf) by Terry Therneau and Beth Atkinson
+| **[R Package]** [lattice](https://cran.r-project.org/web/packages/lattice/lattice.pdf) by  Deepayan Sarkar
+| **[R Package]** [dplyr](https://cran.r-project.org/web/packages/dplyr/index.html/) by Hadley Wickham
+| **[R Package]** [moments](https://cran.r-project.org/web/packages/moments/index.html) by Lukasz Komsta and Frederick
+| **[R Package]** [skimr](https://cran.r-project.org/web/packages/skimr/skimr.pdf) by  Elin Waring
+| **[R Package]** [RANN](https://cran.r-project.org/web/packages/RANN/RANN.pdf) by  Sunil Arya, David Mount, Samuel Kemp and Gregory Jefferis
+| **[R Package]** [corrplot](https://cran.r-project.org/web/packages/corrplot/corrplot.pdf) by Taiyun Wei
+| **[R Package]** [tidyverse](https://cran.r-project.org/web/packages/tidyverse/tidyverse.pdf) by Hadley Wickham
+| **[R Package]** [lares](https://cran.rstudio.com/web/packages/lares/lares.pdf) by Bernardo Lares
+| **[R Package]** [DMwR](https://mran.microsoft.com/snapshot/2016-05-02/web/packages/DMwR/DMwR.pdf) by Luis Torgo
+| **[R Package]** [gridExtra](https://cran.r-project.org/web/packages/gridExtra/gridExtra.pdf) by Baptiste Auguie and Anton Antonov
+| **[R Package]** [rattle](https://cran.r-project.org/web/packages/rattle/rattle.pdf) by Graham Williams
+| **[R Package]** [RColorBrewer](https://cran.r-project.org/web//packages/RColorBrewer/RColorBrewer.pdf) by Erich Neuwirth
+| **[R Package]** [stats](https://search.r-project.org/R/refmans/stats/html/00Index.html) by R Core Team
+| **[R Package]** [ISLR](https://cran.r-project.org/web/packages/ISLR/ISLR.pdf) by Trevor Hastie
+| **[R Package]** [factoextra](https://cran.r-project.org/web/packages/factoextra/factoextra.pdf) by Alboukadel Kassambara
+| **[R Package]** [NbClust](https://cran.r-project.org/web/packages/NbClust/NbClust.pdf) by Malika Charrad, Nadia Ghazzali, Veronique Boiteau and Azam Niknafs
+| **[R Package]** [cluster](https://cran.r-project.org/web/packages/cluster/cluster.pdf) by Martin Maechler
+| **[Article]** [Cluster Analysis in R Simplified and Enhanced](https://www.datanovia.com/en/blog/cluster-analysis-in-r-simplified-and-enhanced/) by Datanovia Team
+| **[Article]** [Cluster Validation Essentials](http://www.sthda.com/english/articles/29-cluster-validation-essentials/96-determiningthe-optimal-number-of-clusters-3-must-know-methods/) by Alboukadel Kassambara
+| **[Article]** [Data Preparation and R Packages for Cluster Analysis](https://www.datanovia.com/en/lessons/data-preparation-and-r-packages-for-cluster-analysis/) by Datanovia Team
+| **[Article]** [The Complete Guide to Clustering Analysis: K-Means and Hierarchical Clustering by Hand and in R](https://statsandr.com/blog/clustering-analysis-k-means-and-hierarchical-clustering-by-hand-and-in-r/#silhouette-method) by Antoine Soetewey
+| **[Article]** [Practical Guide to Clustering Algorithms & Evaluation in R](https://www.hackerearth.com/practice/machine-learning/machine-learning-algorithms/clustering-algorithms-evaluation-r/tutorial/) by Hacker Earth Team
+| **[Article]** [Measures for Comparing Clustering Algorithms](https://www.datanovia.com/en/lessons/choosing-the-best-clustering-algorithms/#:~:text=Compare%20clustering%20algorithms%20in%20R%20We%E2%80%99ll%20use%20the,%22average%22%29%20obj%3A%20A%20numeric%20matrix%20or%20data%20frame.) by Datanovia Team
+| **[Article]** [K-Means Clustering – Introduction](https://www.geeksforgeeks.org/k-means-clustering-introduction/) by Geeks For Geeks Team
+| **[Article]** [K- Means Clustering Algorithm](https://www.educba.com/k-means-clustering-algorithm/) by Priya Pedamkar
+| **[Article]** [K-Means Clustering Algorithm: Applications, Types, and How Does It Work?](https://www.simplilearn.com/tutorials/machine-learning-tutorial/k-means-clustering-algorithm) by Mayank Banoula
+| **[Article]** [A New Partitioning Around Medoids Algorithm](https://www.stat.ubc.ca/new-partitioning-around-medoids-algorithm) by Mark Van der Laan, Katherine Pollard and Jennifer Bryan
+| **[Article]** [ML | K-Medoids Clustering With Solved Example](https://www.geeksforgeeks.org/ml-k-medoids-clustering-with-example/) by Geeks For Geeks Team
+| **[Article]** [Fuzzy Clustering Essentials](https://www.datanovia.com/en/lessons/fuzzy-clustering-essentials/#:~:text=The%20fuzzy%20clustering%20is%20considered%20as%20soft%20clustering%2C,the%20degree%20of%20being%20in%20a%20given%20cluster.) by Datanovia Team
+| **[Article]** [Types of Clustering](https://www.educba.com/types-of-clustering/) by Priya Pedamkar
+| **[Article]** [What is Fuzzy Clustering?](https://www.statisticshowto.com/fuzzy-clustering/) by Statistics How To Team
+| **[Article]** [ML | Fuzzy Clustering](https://www.geeksforgeeks.org/ml-fuzzy-clustering/) by Geeks For Geeks Team
+| **[Article]** [What is Hierarchical Clustering?](https://www.displayr.com/what-is-hierarchical-clustering/) by Tim Bock
+| **[Article]** [What is Hierarchical Clustering? An Introduction to Hierarchical Clustering](https://www.mygreatlearning.com/blog/hierarchical-clustering/) by Great Learning Team
+| **[Article]** [Difference Between K-Means and Hierarchical Clustering](https://www.geeksforgeeks.org/difference-between-k-means-and-hierarchical-clustering/) by Geeks For Geeks Team
+| **[Article]** [What is Hierarchical Clustering and How Does It Work](https://www.simplilearn.com/tutorials/data-science-tutorial/hierarchical-clustering-in-r) by Simplilearn Team
+| **[Article]** [Hierarchical Clustering Explained with Python Example](https://vitalflux.com/hierarchical-clustering-explained-with-python-example/) by Ajitesh Kumar
+| **[Article]** [Agglomerative Hierarchical Clustering](https://www.datanovia.com/en/lessons/agglomerative-hierarchical-clustering/#:~:text=The%20agglomerative%20clustering%20is%20the%20most%20common%20type,by%20treating%20each%20object%20as%20a%20singleton%20cluster.) by Datanovia Team
+| **[Article]** [Divisive Hierarchical Clustering](https://www.datanovia.com/en/lessons/divisive-hierarchical-clustering/) by Datanovia Team
+| **[Article]** [ML | Hierarchical clustering (Agglomerative and Divisive clustering)](https://www.geeksforgeeks.org/ml-hierarchical-clustering-agglomerative-and-divisive-clustering/) by Geeks For Geeks Team
+| **[Article]** [Practical Guide to Clustering Algorithms & Evaluation in R](https://www.hackerearth.com/practice/machine-learning/machine-learning-algorithms/clustering-algorithms-evaluation-r/tutorial/) by Hackerearth Team
+| **[Article]** [Which Are The Best Clustering Metrics? (Explained Simply)](https://stephenallwright.com/good-clustering-metrics/) by Stephen Allwright
+| **[Article]** [Elbow Method vs Silhouette Score – Which is Better?](https://vitalflux.com/elbow-method-silhouette-score-which-better/) by Ajitesh Kumar
+| **[Article]** [Assessment Metrics for Clustering Algorithms](https://opendatascience.com/assessment-metrics-clustering-algorithms/) by Spencer Norris
+| **[Article]** [Clustering Performance Evaluation in Scikit Learn](https://www.geeksforgeeks.org/clustering-performance-evaluation-in-scikit-learn/) by Geeks For Geeks Team
+| **[Article]** [Taxonomy of Data Clustering Methods](https://1library.net/article/taxonomy-data-clustering-methods-overview-data-clustering-tools.y8p5nn4z) by Yun Lillian Li
+| **[Article]** [Visualizing K-Means Clustering](https://www.naftaliharris.com/blog/visualizing-k-means-clustering/) by Naftali Harris 
+| **[Article]** [Visualizing DBSCAN Clustering](https://www.naftaliharris.com/blog/visualizing-dbscan-clustering/) by Naftali Harris | **[Publication]** [Clustering Rules: A Comparison of Partitioning and Hierarchical Clustering Algorithms](https://link.springer.com/article/10.1007/s10852-005-9022-1) by AP Reynolds (Journal of Mathematical Modelling and Algorithms)
+| **[Publication]** [Faster k-Medoids Clustering: Improving the PAM, CLARA, and CLARANS Algorithms](https://link.springer.com/chapter/10.1007/978-3-030-32047-8_16) by Erich Schubert and Peter Rousseeuw  (SISAP 2020)
+| **[Publication]** [Fast and Eager k-Medoids Clustering: O(k) Runtime Improvement of the PAM, CLARA, and CLARANS Algorithms](https://www.sciencedirect.com/science/article/abs/pii/S0925231217311815) by Erich Schubert and Peter Rousseeuw  (Information Systems)
+| **[Publication]** [ A General Coefficient of Similarity and Some of its Properties](https://www.jstor.org/stable/2528823) by JC Gower (Biometrics)
+| **[Publication]** [Integrating Robust Clustering Techniques in S-PLUS](https://www.sciencedirect.com/science/article/abs/pii/S0167947397000200) by Anja Struyf, Mia Hubert and Peter Rousseeuw (Computational Statistics and Data Analysis)
+| **[Publication]** [Cluster Analysis of Multivariate Data : Efficiency Versus Interpretability of Classification](https://cir.nii.ac.jp/crid/1572261551251079552?lang=en) by E Forgy (Biometrics)
+| **[Publication]** [Some Methods for Classification and Analysis of Multivariate Observations](https://www.semanticscholar.org/paper/Some-methods-for-classification-and-analysis-of-MacQueen/ac8ab51a86f1a9ae74dd0e4576d1a019f5e654ed) by J Macqueen (Proceedings of the Fifth Berkeley Symposium on Mathematical Statistics and Probability)
+| **[Publication]** [Algorithm AS136: A K-Means Clustering Algorithm](https://www.semanticscholar.org/paper/Algorithm-AS136%3A-A-k-means-clustering-algorithm.-Hartingan-Wong/f5bcf7ef2364bc402af1f1ef1fc411e1cfffaeca) by Ja Hartingan and Maurice Wong (Applied Statistics)
+| **[Publication]** [Multidimensional Clustering Algorithms](https://zbmath.org/0601.62085) by Fionn Murtagh (Compstat Lectures)
+| **[Course]** [Applied Data Mining and Statistical Learning](https://online.stat.psu.edu/stat508/) by Penn State Eberly College of Science
+|
+|
+|
+|
